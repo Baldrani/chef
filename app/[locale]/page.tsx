@@ -1,14 +1,12 @@
 "use client";
 
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { Link, useRouter } from "@/i18n/navigation";
 
 export default function Home() {
     const t = useTranslations("Home");
     const router = useRouter();
-    const locale = useLocale();
     const [token, setToken] = useState("");
 
     return (
@@ -19,7 +17,7 @@ export default function Home() {
                         <h1 className="text-4xl md:text-6xl font-bold tracking-tight">{t("headline")}</h1>
                         <p className="text-lg text-slate-600 max-w-2xl mx-auto">{t("sub")}</p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                            <Link className="btn btn-primary px-5 py-3" href={`/${locale}/admin`}>
+                            <Link className="btn btn-primary px-5 py-3" href="/admin">
                                 {t("createTrip")}
                             </Link>
                             <div className="flex items-stretch gap-2">
@@ -29,7 +27,7 @@ export default function Home() {
                                     value={token}
                                     onChange={e => setToken(e.target.value)}
                                 />
-                                <button className="btn btn-secondary" onClick={() => token && router.push(`/${locale}/join/${token}`)}>
+                                <button className="btn btn-secondary" onClick={() => token && router.push(`/join/${token}`)}>
                                     {t("join")}
                                 </button>
                             </div>

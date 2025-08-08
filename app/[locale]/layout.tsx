@@ -3,6 +3,8 @@ import { Poppins, Pacifico } from "next/font/google";
 import "../globals.css";
 import Header from "../components/Header";
 import { NextIntlClientProvider } from "next-intl";
+import { notFound } from "next/navigation";
+import { routing } from "@/i18n/routing";
 
 const poppins = Poppins({
     variable: "--font-poppins",
@@ -25,6 +27,9 @@ export const metadata: Metadata = {
 
 export default async function LocaleLayout({ children, params }: { children: React.ReactNode; params: Promise<{ locale: string }> }) {
     const { locale } = await params;
+    if (!(routing.locales as readonly string[]).includes(locale)) {
+        notFound();
+    }
     const messages = (await import(`../../messages/${locale}.json`)).default;
     return (
         <html lang={locale}>

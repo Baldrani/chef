@@ -1,6 +1,7 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useLocale } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { enumerateUtcYmdInclusive } from "@/lib/dates";
@@ -8,7 +9,6 @@ import { enumerateUtcYmdInclusive } from "@/lib/dates";
 export default function JoinPage() {
     const params = useParams<{ token: string }>();
     const router = useRouter();
-    const locale = useLocale();
     const token = (params?.token as string) || "";
 
     const [name, setName] = useState("");
@@ -55,7 +55,7 @@ export default function JoinPage() {
                 return;
             }
             const participant = await res.json();
-            router.push(`/${locale}/trips/${participant.tripId}`);
+            router.push(`/trips/${participant.tripId}`);
         } finally {
             setBusy(false);
         }
