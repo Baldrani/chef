@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+:root {
+    --background: #f8fafc;
+    --foreground: #0f172a;
+    --accent-start: #ffe08a; /* sunshine */
+    --accent-mid: #ffd1dc; /* pastel pink */
+    --accent-end: #9be7ff; /* sky */
+    --font-sans: var(--font-poppins);
+    --font-brand: var(--font-pacifico);
+}
+
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --font-sans: var(--font-poppins);
+    --font-mono: var(--font-geist-mono);
+}
+
+html,
+body {
+    color-scheme: light;
+}
+
+body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans), system-ui, -apple-system, Segoe UI, Roboto, Arial, Helvetica, sans-serif;
+    line-height: 1.5;
+}
+
+/* UI primitives */
+.btn {
+    @apply inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors shadow-sm;
+}
+.btn-primary {
+    @apply bg-slate-900 text-white hover:bg-black px-4 py-2;
+}
+.btn-secondary {
+    @apply border border-slate-300 bg-white hover:bg-slate-50 text-slate-900 px-3 py-2;
+}
+.input {
+    @apply border border-slate-300 bg-white rounded-lg px-3 py-2 shadow-sm;
+}
+.card {
+    @apply border border-slate-200 bg-white rounded-xl p-4 shadow-sm;
+}

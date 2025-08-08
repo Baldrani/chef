@@ -1,0 +1,29 @@
+{
+    "Header": {
+        "admin": "Admin",
+        "github": "GitHub",
+        "brand": "Chef",
+        "tag": "Été"
+    },
+    "Home": {
+        "headline": "La cuisine de groupe sans stress en vacances",
+        "sub": "Planifiez les repas, assignez équitablement cuisiniers et aides, ajoutez des recettes et générez des listes de courses quotidiennes avec l'IA.",
+        "createTrip": "Créer un voyage",
+        "join": "Rejoindre",
+        "joinPlaceholder": "Jeton d'invitation",
+        "f1": { "title": "Planning intelligent", "desc": "Pondéré par préférence et disponibilité pour chaque repas." },
+        "f2": { "title": "Recettes & courses", "desc": "Assignez des plats et générez automatiquement une liste de courses par jour." },
+        "f3": { "title": "Inviter & partager", "desc": "Liens d'invitation et export ICS du planning." },
+        "footer": "Construit avec Next.js et Prisma. © {year} Chef"
+    },
+    "Admin": {
+        "title": "Voyages",
+        "create": "Créer un voyage",
+        "name": "Nom",
+        "start": "Date de début",
+        "end": "Date de fin",
+        "creating": "Création...",
+        "createBtn": "Créer",
+        "open": "Ouvrir"
+    }
+}

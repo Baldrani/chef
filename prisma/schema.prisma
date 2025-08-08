@@ -1,0 +1,108 @@
+// Prisma schema for Chef app
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+}
+
+enum AssignmentRole {
+  COOK
+  HELPER
+}
+
+model Trip {
+  id           String      @id @default(cuid())
+  name         String
+  startDate    DateTime
+  endDate      DateTime
+  mealSlots    MealSlot[]
+  participants Participant[]
+  recipes      Recipe[]
+  invites      Invite[]
+  createdAt    DateTime    @default(now())
+}
+
+model MealSlot {
+  id          String        @id @default(cuid())
+  tripId      String
+  trip        Trip          @relation(fields: [tripId], references: [id])
+  date        DateTime
+  mealType    MealType
+  assignments Assignment[]
+  recipes     RecipeAssignment[]
+
+  @@unique([tripId, date, mealType])
+}
+
+model Participant {
+  id                 String                   @id @default(cuid())
+  tripId             String
+  trip               Trip                     @relation(fields: [tripId], references: [id])
+  name               String
+  cookingPreference  Int                      // -2..+2
+  availabilities     ParticipantAvailability[]
+  assignments        Assignment[]
+  createdAt          DateTime                 @default(now())
+}
+
+model ParticipantAvailability {
+  id            String       @id @default(cuid())
+  participantId String
+  participant   Participant  @relation(fields: [participantId], references: [id])
+  date          DateTime
+
+  @@unique([participantId, date])
+}
+
+model Assignment {
+  id            String       @id @default(cuid())
+  mealSlotId    String
+  mealSlot      MealSlot     @relation(fields: [mealSlotId], references: [id])
+  participantId String
+  participant   Participant  @relation(fields: [participantId], references: [id])
+  role          AssignmentRole @default(COOK)
+  createdAt     DateTime     @default(now())
+
+  @@unique([mealSlotId, participantId])
+}
+
+model Recipe {
+  id         String    @id @default(cuid())
+  tripId     String
+  trip       Trip      @relation(fields: [tripId], references: [id])
+  title      String
+  notes      String?
+  serves     Int?
+  createdAt  DateTime  @default(now())
+  recipeAssignments RecipeAssignment[]
+}
+
+model RecipeAssignment {
+  id         String   @id @default(cuid())
+  mealSlotId String
+  mealSlot   MealSlot @relation(fields: [mealSlotId], references: [id])
+  recipeId   String
+  recipe     Recipe   @relation(fields: [recipeId], references: [id])
+
+  @@unique([mealSlotId, recipeId])
+}
+
+model Invite {
+  id             String   @id @default(cuid())
+  tripId         String
+  trip           Trip     @relation(fields: [tripId], references: [id])
+  token          String   @unique
+  expiresAt      DateTime?
+  usesRemaining  Int?
+  createdAt      DateTime @default(now())
+}
