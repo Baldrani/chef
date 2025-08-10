@@ -53,12 +53,19 @@ export default function TripPage() {
     const [helpersPerMeal, setHelpersPerMeal] = useState<number>(0);
     const [avoidConsecutive, setAvoidConsecutive] = useState<boolean>(true);
 
-    const [tab, setTab] = useState<"summary" | "schedule" | "participants" | "recipes" | "groceries">("summary");
+    const [tab, setTab] = useState<"plan" | "recipes" | "team">("plan");
     const [isLoading, setIsLoading] = useState(true);
     const [isGeneratingSchedule, setIsGeneratingSchedule] = useState(false);
     const [isGeneratingGroceries, setIsGeneratingGroceries] = useState(false);
     const [isSubmittingMeals, setIsSubmittingMeals] = useState(false);
     const [isAddingParticipant, setIsAddingParticipant] = useState(false);
+    
+    // Recipe creation modal state
+    const [showRecipeModal, setShowRecipeModal] = useState(false);
+    const [newRecipeTitle, setNewRecipeTitle] = useState("");
+    const [newRecipeServes, setNewRecipeServes] = useState<number | undefined>();
+    const [newRecipeNotes, setNewRecipeNotes] = useState("");
+    const [isCreatingRecipe, setIsCreatingRecipe] = useState(false);
 
     const refreshTrip = useCallback(async () => {
         if (!tripId) return;
@@ -169,6 +176,32 @@ export default function TripPage() {
         }
     }
 
+    async function createRecipe() {
+        if (!newRecipeTitle.trim()) return;
+        setIsCreatingRecipe(true);
+        try {
+            await fetch(`/api/recipes`, {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ 
+                    tripId, 
+                    title: newRecipeTitle.trim(), 
+                    notes: newRecipeNotes.trim() || undefined, 
+                    serves: newRecipeServes 
+                }),
+            });
+            // Reset form
+            setNewRecipeTitle("");
+            setNewRecipeNotes("");
+            setNewRecipeServes(undefined);
+            setShowRecipeModal(false);
+            // Refresh data
+            await refreshRecipes();
+            await refreshSchedule();
+        } finally {
+            setIsCreatingRecipe(false);
+        }
+    }
 
     async function generateGroceries() {
         setIsGeneratingGroceries(true);
@@ -274,7 +307,7 @@ export default function TripPage() {
 
             <nav className="bg-white/60 backdrop-blur-sm rounded-2xl p-2 border border-white/50 shadow-lg slide-in-up">
                 <div className="flex flex-wrap gap-2">
-                    {(["summary", "schedule", "participants", "recipes", "groceries"] as const).map((t, index) => (
+                    {(["plan", "recipes", "team"] as const).map((t, index) => (
                         <button
                             key={t}
                             className={`px-6 py-3 rounded-xl font-medium text-sm transition-all duration-200 ${
@@ -291,7 +324,7 @@ export default function TripPage() {
                 </div>
             </nav>
 
-            {tab === "summary" && (
+            {tab === "plan" && (
                 <section className="card space-y-6">
                     <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
@@ -447,7 +480,7 @@ export default function TripPage() {
                 </section>
             )}
 
-            {tab === "participants" && (
+            {tab === "team" && (
                 <section className="card space-y-6">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
@@ -639,7 +672,7 @@ export default function TripPage() {
                                         }}
                                     />
                                 ))}
-                                <NewRecipeCard />
+                                <NewRecipeCard onClick={() => setShowRecipeModal(true)} />
                             </div>
                         </div>
 
@@ -681,7 +714,7 @@ export default function TripPage() {
                 </section>
             )}
 
-            {tab === "schedule" && (
+            {false && (
                 <section className="card space-y-6">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
@@ -794,7 +827,7 @@ export default function TripPage() {
 
             {/* invites tab removed; invite link moved next to title */}
 
-            {tab === "groceries" && (
+            {false && (
                 <section className="card space-y-6">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
@@ -834,6 +867,79 @@ export default function TripPage() {
                         </ul>
                     )}
                 </section>
+            )}
+
+            {/* Recipe Creation Modal */}
+            {showRecipeModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-xl font-bold text-slate-800">Create New Recipe</h3>
+                            <button 
+                                className="text-slate-400 hover:text-slate-600 p-1"
+                                onClick={() => setShowRecipeModal(false)}
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">Recipe Name *</label>
+                                <input 
+                                    className="input w-full" 
+                                    placeholder="e.g., Pasta Carbonara" 
+                                    value={newRecipeTitle}
+                                    onChange={(e) => setNewRecipeTitle(e.target.value)}
+                                    autoFocus
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">Serves</label>
+                                <input 
+                                    className="input w-full" 
+                                    type="number" 
+                                    placeholder="Number of people" 
+                                    value={newRecipeServes ?? ""}
+                                    onChange={(e) => setNewRecipeServes(e.target.value ? Number(e.target.value) : undefined)}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">Notes</label>
+                                <textarea 
+                                    className="input w-full h-20 resize-none" 
+                                    placeholder="Preparation notes, dietary restrictions, etc."
+                                    value={newRecipeNotes}
+                                    onChange={(e) => setNewRecipeNotes(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        <div className="flex gap-3 mt-6">
+                            <button 
+                                className="btn btn-secondary flex-1"
+                                onClick={() => setShowRecipeModal(false)}
+                                disabled={isCreatingRecipe}
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                className="btn btn-primary flex-1"
+                                onClick={createRecipe}
+                                disabled={!newRecipeTitle.trim() || isCreatingRecipe}
+                            >
+                                {isCreatingRecipe ? (
+                                    <div className="flex items-center gap-2">
+                                        <Loader size="sm" />
+                                        Creating...
+                                    </div>
+                                ) : (
+                                    "Create Recipe"
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
@@ -1279,15 +1385,11 @@ function RecipeLibraryCard({
     );
 }
 
-function NewRecipeCard() {
+function NewRecipeCard({ onClick }: { onClick: () => void }) {
     return (
         <div 
             className="bg-white border-2 border-dashed border-amber-200 rounded-lg p-3 cursor-pointer hover:border-amber-300 transition-all flex flex-col items-center justify-center min-h-[80px] text-slate-500 hover:text-slate-700"
-            onClick={() => {
-                // Trigger the original form - this is a placeholder for now
-                // In a real implementation, we'd need to properly integrate this with the existing form
-                console.log('Add recipe clicked');
-            }}
+            onClick={onClick}
         >
             <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center mb-2">
                 <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
