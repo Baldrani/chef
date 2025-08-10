@@ -371,7 +371,13 @@ export default function TripPage() {
                                                 className="border border-slate-200/50 rounded-xl p-4 bg-gradient-to-br from-white to-slate-50/80 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200"
                                             >
                                                 <div className="flex items-center gap-2 mb-3">
-                                                    <div className="w-8 h-8 bg-gradient-to-r from-orange-400 to-red-500 rounded-lg flex items-center justify-center">
+                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                                        s.mealType === "BREAKFAST" 
+                                                            ? "bg-gradient-to-r from-amber-400 to-yellow-500" 
+                                                            : s.mealType === "LUNCH"
+                                                            ? "bg-gradient-to-r from-orange-400 to-amber-500"
+                                                            : "bg-gradient-to-r from-purple-500 to-indigo-600"
+                                                    }`}>
                                                         {s.mealType === "BREAKFAST" && <span className="text-white text-lg">🌅</span>}
                                                         {s.mealType === "LUNCH" && <span className="text-white text-lg">☀️</span>}
                                                         {s.mealType === "DINNER" && <span className="text-white text-lg">🌙</span>}
