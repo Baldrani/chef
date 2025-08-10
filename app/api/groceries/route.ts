@@ -7,6 +7,7 @@ const Schema = z.object({
     tripId: z.string().min(1),
     date: z.string().date(),
     servingsMultiplier: z.number().min(0.25).max(4).optional(),
+    autoCalculateServings: z.boolean().optional(),
 });
 
 type GroceryList = {
@@ -20,7 +21,7 @@ export async function POST(req: NextRequest) {
     const parsed = Schema.safeParse(body);
     if (!parsed.success) return NextResponse.json({ error: parsed.error.format() }, { status: 400 });
 
-    const { tripId, date, servingsMultiplier = 1 } = parsed.data;
+    const { tripId, date, servingsMultiplier = 1, autoCalculateServings = false } = parsed.data;
     const day = new Date(date);
 
     const slots = await prisma.mealSlot.findMany({
@@ -32,9 +33,38 @@ export async function POST(req: NextRequest) {
 
     if (recipes.length === 0) return NextResponse.json({ items: [] });
 
+    let finalServingsMultiplier = servingsMultiplier;
+
+    if (autoCalculateServings) {
+        // Count participants available on this date
+        const availableParticipants = await prisma.participant.findMany({
+            where: {
+                tripId,
+                OR: [
+                    // Participants with no availability records (assumed available)
+                    { availabilities: { none: {} } },
+                    // Participants with availability record for this date
+                    { availabilities: { some: { date: day } } }
+                ]
+            }
+        });
+
+        const participantCount = availableParticipants.length;
+
+        if (participantCount > 0) {
+            // Calculate average servings per recipe
+            const recipesWithServings = recipes.filter(r => r.serves);
+            const avgServings = recipesWithServings.length > 0 
+                ? recipesWithServings.reduce((sum, r) => sum + (r.serves || 0), 0) / recipesWithServings.length
+                : 4; // Default assumption if no serving info
+
+            finalServingsMultiplier = participantCount / avgServings;
+        }
+    }
+
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const userContent =
-        `Servings multiplier: ${servingsMultiplier}. Recipes:\n` +
+        `Servings multiplier: ${finalServingsMultiplier}. Recipes:\n` +
         recipes.map(r => `- ${r.title}${r.serves ? ` (serves ${r.serves})` : ""}${r.notes ? `\n  Notes: ${r.notes}` : ""}`).join("\n");
 
     const chat = await openai.chat.completions.create({

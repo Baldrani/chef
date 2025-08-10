@@ -6,7 +6,6 @@ const CreateRecipeSchema = z.object({
     tripId: z.string().min(1),
     title: z.string().min(1),
     notes: z.string().optional(),
-    serves: z.number().int().min(1).max(50).optional(),
     mealSlotId: z.string().optional(),
 });
 
@@ -15,9 +14,9 @@ export async function POST(req: NextRequest) {
     const parsed = CreateRecipeSchema.safeParse(body);
     if (!parsed.success) return NextResponse.json({ error: parsed.error.format() }, { status: 400 });
 
-    const { tripId, title, notes, serves, mealSlotId } = parsed.data;
+    const { tripId, title, notes, mealSlotId } = parsed.data;
 
-    const recipe = await prisma.recipe.create({ data: { tripId, title, notes, serves } });
+    const recipe = await prisma.recipe.create({ data: { tripId, title, notes } });
 
     if (mealSlotId) {
         await prisma.recipeAssignment.create({ data: { mealSlotId, recipeId: recipe.id } });

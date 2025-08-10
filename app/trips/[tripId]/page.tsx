@@ -63,9 +63,16 @@ export default function TripPage() {
     // Recipe creation modal state
     const [showRecipeModal, setShowRecipeModal] = useState(false);
     const [newRecipeTitle, setNewRecipeTitle] = useState("");
-    const [newRecipeServes, setNewRecipeServes] = useState<number | undefined>();
     const [newRecipeNotes, setNewRecipeNotes] = useState("");
     const [isCreatingRecipe, setIsCreatingRecipe] = useState(false);
+
+    // Recipe editing modal state
+    const [showEditRecipeModal, setShowEditRecipeModal] = useState(false);
+    const [editingRecipe, setEditingRecipe] = useState<{id: string; title: string; notes?: string | null} | null>(null);
+    const [editRecipeTitle, setEditRecipeTitle] = useState("");
+    const [editRecipeNotes, setEditRecipeNotes] = useState("");
+    const [isEditingRecipe, setIsEditingRecipe] = useState(false);
+    const [isDeletingRecipe, setIsDeletingRecipe] = useState(false);
 
     const refreshTrip = useCallback(async () => {
         if (!tripId) return;
@@ -186,14 +193,12 @@ export default function TripPage() {
                 body: JSON.stringify({ 
                     tripId, 
                     title: newRecipeTitle.trim(), 
-                    notes: newRecipeNotes.trim() || undefined, 
-                    serves: newRecipeServes 
+                    notes: newRecipeNotes.trim() || undefined
                 }),
             });
             // Reset form
             setNewRecipeTitle("");
             setNewRecipeNotes("");
-            setNewRecipeServes(undefined);
             setShowRecipeModal(false);
             // Refresh data
             await refreshRecipes();
@@ -203,13 +208,67 @@ export default function TripPage() {
         }
     }
 
-    async function generateGroceries() {
+    function openEditRecipe(recipe: {id: string; title: string; notes?: string | null}) {
+        setEditingRecipe(recipe);
+        setEditRecipeTitle(recipe.title);
+        setEditRecipeNotes(recipe.notes || "");
+        setShowEditRecipeModal(true);
+    }
+
+    async function saveRecipeEdit() {
+        if (!editingRecipe || !editRecipeTitle.trim()) return;
+        setIsEditingRecipe(true);
+        try {
+            await fetch(`/api/recipes/${editingRecipe.id}`, {
+                method: "PATCH",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ 
+                    title: editRecipeTitle.trim(), 
+                    notes: editRecipeNotes.trim() || null
+                }),
+            });
+            // Reset form
+            setEditingRecipe(null);
+            setEditRecipeTitle("");
+            setEditRecipeNotes("");
+            setShowEditRecipeModal(false);
+            // Refresh data
+            await refreshRecipes();
+            await refreshSchedule();
+        } finally {
+            setIsEditingRecipe(false);
+        }
+    }
+
+    async function deleteRecipe() {
+        if (!editingRecipe) return;
+        if (!confirm(`Are you sure you want to delete "${editingRecipe.title}"? This will remove it from all meals and cannot be undone.`)) return;
+        
+        setIsDeletingRecipe(true);
+        try {
+            await fetch(`/api/recipes/${editingRecipe.id}`, {
+                method: "DELETE",
+            });
+            // Reset form
+            setEditingRecipe(null);
+            setEditRecipeTitle("");
+            setEditRecipeNotes("");
+            setShowEditRecipeModal(false);
+            // Refresh data
+            await refreshRecipes();
+            await refreshSchedule();
+        } finally {
+            setIsDeletingRecipe(false);
+        }
+    }
+
+    async function generateGroceries(autoCalculate = false) {
         setIsGeneratingGroceries(true);
         try {
             const res = await fetch(`/api/groceries`, {
                 method: "POST",
                 headers: { "content-type": "application/json" },
-                body: JSON.stringify({ tripId, date: groceriesDate }),
+                body: JSON.stringify({ tripId, date: groceriesDate, autoCalculateServings: autoCalculate }),
             });
             const data = await res.json();
             setGroceries(data.items ?? []);
@@ -470,7 +529,6 @@ export default function TripPage() {
                                 {recipes.map(r => (
                                     <li key={r.id}>
                                         {r.title}
-                                        {r.serves ? ` (serves ${r.serves})` : ""}
                                         {r.notes ? ` — ${r.notes}` : ""}
                                     </li>
                                 ))}
@@ -670,6 +728,7 @@ export default function TripPage() {
                                             await refreshSchedule();
                                             await refreshRecipes();
                                         }}
+                                        onEdit={() => openEditRecipe(recipe)}
                                     />
                                 ))}
                                 <NewRecipeCard onClick={() => setShowRecipeModal(true)} />
@@ -827,46 +886,127 @@ export default function TripPage() {
 
             {/* invites tab removed; invite link moved next to title */}
 
-            {false && (
-                <section className="card space-y-6">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
-                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17M17 13a2 2 0 100 4 2 2 0 000-4zM9 19a2 2 0 11-4 0 2 2 0 014 0z"
-                                />
-                            </svg>
+            <section className="card space-y-6">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17M17 13a2 2 0 100 4 2 2 0 000-4zM9 19a2 2 0 11-4 0 2 2 0 014 0z"
+                            />
+                        </svg>
+                    </div>
+                    <h2 className="text-2xl font-bold text-slate-800">Grocery List</h2>
+                </div>
+                <div className="flex gap-3">
+                    <input className="input" type="date" value={groceriesDate} onChange={e => setGroceriesDate(e.target.value)} />
+                    <button className="btn btn-primary" onClick={() => generateGroceries(true)} disabled={isGeneratingGroceries || !groceriesDate}>
+                        {isGeneratingGroceries ? (
+                            <div className="flex items-center gap-2">
+                                <Loader size="sm" />
+                                Generating...
+                            </div>
+                        ) : (
+                            "Generate for Participants"
+                        )}
+                    </button>
+                </div>
+                {groceries.length > 0 && (
+                    <ul className="list-disc pl-6 text-slate-700">
+                        {groceries.map((i, idx) => (
+                            <li key={idx}>
+                                {i.name}
+                                {i.quantity ? ` — ${i.quantity}` : ""}
+                                {i.category ? ` (${i.category})` : ""}
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </section>
+
+            {/* Recipe Edit Modal */}
+            {showEditRecipeModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-xl font-bold text-slate-800">Edit Recipe</h3>
+                            <button 
+                                className="text-slate-400 hover:text-slate-600 p-1"
+                                onClick={() => setShowEditRecipeModal(false)}
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
                         </div>
-                        <h2 className="text-2xl font-bold text-slate-800">Grocery List</h2>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">Recipe Name *</label>
+                                <input 
+                                    className="input w-full" 
+                                    placeholder="e.g., Pasta Carbonara" 
+                                    value={editRecipeTitle}
+                                    onChange={(e) => setEditRecipeTitle(e.target.value)}
+                                    autoFocus
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">Notes</label>
+                                <textarea 
+                                    className="input w-full h-20 resize-none" 
+                                    placeholder="Preparation notes, dietary restrictions, etc."
+                                    value={editRecipeNotes}
+                                    onChange={(e) => setEditRecipeNotes(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        <div className="flex gap-3 mt-6">
+                            <button 
+                                className="btn btn-secondary hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors"
+                                onClick={deleteRecipe}
+                                disabled={isEditingRecipe || isDeletingRecipe}
+                                title="Delete recipe"
+                            >
+                                {isDeletingRecipe ? (
+                                    <div className="flex items-center gap-2">
+                                        <Loader size="sm" />
+                                        Deleting...
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                        Delete
+                                    </div>
+                                )}
+                            </button>
+                            <button 
+                                className="btn btn-secondary flex-1"
+                                onClick={() => setShowEditRecipeModal(false)}
+                                disabled={isEditingRecipe || isDeletingRecipe}
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                className="btn btn-primary flex-1"
+                                onClick={saveRecipeEdit}
+                                disabled={!editRecipeTitle.trim() || isEditingRecipe || isDeletingRecipe}
+                            >
+                                {isEditingRecipe ? (
+                                    <div className="flex items-center gap-2">
+                                        <Loader size="sm" />
+                                        Saving...
+                                    </div>
+                                ) : (
+                                    "Save Changes"
+                                )}
+                            </button>
+                        </div>
                     </div>
-                    <div className="flex gap-3">
-                        <input className="input" type="date" value={groceriesDate} onChange={e => setGroceriesDate(e.target.value)} />
-                        <button className="btn btn-primary" onClick={generateGroceries} disabled={isGeneratingGroceries || !groceriesDate}>
-                            {isGeneratingGroceries ? (
-                                <div className="flex items-center gap-2">
-                                    <Loader size="sm" />
-                                    Generating...
-                                </div>
-                            ) : (
-                                "Generate"
-                            )}
-                        </button>
-                    </div>
-                    {groceries.length > 0 && (
-                        <ul className="list-disc pl-6 text-slate-700">
-                            {groceries.map((i, idx) => (
-                                <li key={idx}>
-                                    {i.name}
-                                    {i.quantity ? ` — ${i.quantity}` : ""}
-                                    {i.category ? ` (${i.category})` : ""}
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </section>
+                </div>
             )}
 
             {/* Recipe Creation Modal */}
@@ -893,16 +1033,6 @@ export default function TripPage() {
                                     value={newRecipeTitle}
                                     onChange={(e) => setNewRecipeTitle(e.target.value)}
                                     autoFocus
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">Serves</label>
-                                <input 
-                                    className="input w-full" 
-                                    type="number" 
-                                    placeholder="Number of people" 
-                                    value={newRecipeServes ?? ""}
-                                    onChange={(e) => setNewRecipeServes(e.target.value ? Number(e.target.value) : undefined)}
                                 />
                             </div>
                             <div>
@@ -1288,11 +1418,13 @@ function RecipeAssigner({ mealSlotId, onChanged }: { mealSlotId: string; onChang
 function RecipeLibraryCard({ 
     recipe, 
     slots, 
-    onAssign 
+    onAssign,
+    onEdit
 }: { 
     recipe: { id: string; title: string; notes?: string | null; serves?: number | null }; 
     slots: MealSlot[]; 
     onAssign: () => Promise<void>; 
+    onEdit: () => void;
 }) {
     const [showAssign, setShowAssign] = useState(false);
     const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
@@ -1367,20 +1499,37 @@ function RecipeLibraryCard({
     }
 
     return (
-        <div 
-            className="bg-white border border-amber-200 rounded-lg p-3 cursor-pointer hover:border-amber-300 hover:shadow-sm transition-all"
-            onClick={() => setShowAssign(true)}
-        >
-            <div className="font-medium text-slate-800 truncate mb-1">{recipe.title}</div>
-            <div className="flex items-center justify-between text-xs text-slate-500">
-                <span>{recipe.serves ? `Serves ${recipe.serves}` : "No serving info"}</span>
+        <div className="bg-white border border-amber-200 rounded-lg p-3 hover:border-amber-300 hover:shadow-sm transition-all">
+            <div className="flex items-start justify-between mb-1">
+                <div className="font-medium text-slate-800 truncate flex-1 pr-2">{recipe.title}</div>
+                <button
+                    className="text-slate-400 hover:text-slate-600 p-1"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit();
+                    }}
+                    title="Edit recipe"
+                >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                </button>
+            </div>
+            <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
+                <span>Auto-calculated portions</span>
                 <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
                     {assignedSlots.length} assigned
                 </span>
             </div>
             {recipe.notes && (
-                <div className="text-xs text-slate-400 mt-1 truncate">{recipe.notes}</div>
+                <div className="text-xs text-slate-400 mb-2 truncate">{recipe.notes}</div>
             )}
+            <button 
+                className="w-full text-xs text-amber-600 hover:text-amber-700 py-1 px-2 rounded border border-amber-200 hover:border-amber-300 transition-colors"
+                onClick={() => setShowAssign(true)}
+            >
+                Assign to meals
+            </button>
         </div>
     );
 }
@@ -1554,7 +1703,6 @@ function MealPlanningCard({
                                 disabled={busy}
                             >
                                 <div className="font-medium text-slate-800">{recipe.title}</div>
-                                {recipe.serves && <div className="text-xs text-slate-500">Serves {recipe.serves}</div>}
                             </button>
                         ))}
                     </div>
