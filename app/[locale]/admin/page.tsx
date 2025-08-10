@@ -64,7 +64,7 @@ export default function AdminPage() {
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-8">
             <div className="text-center space-y-4">
-                <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                <h1 className="text-5xl font-bold animate-gradient">
                     {t("title")}
                 </h1>
                 <p className="text-xl text-slate-600 font-medium">Manage your cooking adventures</p>

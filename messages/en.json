@@ -14,7 +14,7 @@
         "f1": { "title": "Smart schedule", "desc": "Preference-weighted, availability-aware pairing for each meal." },
         "f2": { "title": "Recipes & groceries", "desc": "Assign dishes and auto-generate a concise shopping list per day." },
         "f3": { "title": "Invite & share", "desc": "Invite links for self-join, plus ICS calendar export of the plan." },
-        "footer": "Built with Next.js and Prisma. © {year} Chef"
+        "footer": "Built with ❤️ by {name}. © {year} Chef"
     },
     "Admin": {
         "title": "Trips",

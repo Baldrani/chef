@@ -46,33 +46,42 @@ body {
 
 /* UI primitives */
 .btn {
-    @apply inline-flex items-center justify-center text-sm font-medium transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-md;
+    @apply inline-flex items-center justify-center text-sm font-medium transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-md cursor-pointer;
     border-radius: var(--border-radius-lg);
+}
+.btn:disabled {
+    @apply cursor-not-allowed opacity-50 transform-none hover:scale-100;
 }
 .btn-primary {
     background: var(--gradient-primary);
-    @apply text-white px-6 py-3 shadow-lg hover:shadow-xl;
+    @apply text-white px-6 py-3 shadow-lg hover:shadow-xl cursor-pointer;
     border: 1px solid transparent;
 }
 .btn-secondary {
-    @apply border-2 border-slate-200 bg-white/80 backdrop-blur-sm hover:bg-white hover:border-slate-300 text-slate-700 px-5 py-2.5 shadow-md hover:shadow-lg;
+    @apply border-2 border-slate-200 bg-white/80 backdrop-blur-sm hover:bg-white hover:border-slate-300 text-slate-700 px-5 py-2.5 shadow-md hover:shadow-lg cursor-pointer;
     border-radius: var(--border-radius-lg);
 }
 .btn-success {
     background: var(--gradient-success);
-    @apply text-white px-6 py-3 shadow-lg hover:shadow-xl;
+    @apply text-white px-6 py-3 shadow-lg hover:shadow-xl cursor-pointer;
     border: 1px solid transparent;
 }
 .btn-warm {
     background: var(--gradient-warm);
-    @apply text-white px-6 py-3 shadow-lg hover:shadow-xl;
+    @apply text-white px-6 py-3 shadow-lg hover:shadow-xl cursor-pointer;
     border: 1px solid transparent;
 }
 .input {
-    @apply border-2 border-slate-200 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-3 text-slate-700 placeholder-slate-400 transition-all duration-200 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none shadow-sm hover:shadow-md;
+    @apply border-2 border-slate-200 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-3 text-slate-700 placeholder-slate-400 transition-all duration-200 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none shadow-sm hover:shadow-md cursor-text;
 }
 .input:focus {
     transform: translateY(-1px);
+}
+.input:disabled {
+    @apply cursor-not-allowed opacity-60;
+}
+select.input {
+    @apply cursor-pointer;
 }
 .card {
     @apply bg-white/80 backdrop-blur-sm border border-slate-200/50 p-6 transition-all duration-200 hover:shadow-xl hover:-translate-y-1;
@@ -83,7 +92,7 @@ body {
     @apply cursor-pointer hover:border-blue-300;
 }
 .stat-card {
-    @apply bg-gradient-to-br from-white/90 to-blue-50/80 backdrop-blur-sm border border-blue-100 p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5;
+    @apply bg-gradient-to-br from-white/90 to-blue-50/80 backdrop-blur-sm border border-blue-100 p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 cursor-default;
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-md);
 }
@@ -114,4 +123,154 @@ body {
 
 .animation-delay-4000 {
     animation-delay: 4s;
+}
+
+/* Enhanced card variants */
+.card-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    @apply text-white border-0;
+}
+
+.card-feature {
+    @apply bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 backdrop-blur-sm border-2 border-blue-100/50 p-8 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 hover:border-blue-200;
+    border-radius: var(--border-radius-xl);
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
+}
+
+.card-meal {
+    @apply bg-gradient-to-br from-orange-50 to-red-50/50 border border-orange-100 hover:border-orange-200 transition-all duration-200 hover:shadow-lg hover:-translate-y-1;
+    border-radius: var(--border-radius-lg);
+}
+
+.card-participant {
+    @apply bg-gradient-to-br from-blue-50 to-indigo-50/50 border border-blue-100 hover:border-blue-200 transition-all duration-200 hover:shadow-lg hover:-translate-y-1;
+    border-radius: var(--border-radius-lg);
+}
+
+.floating-icon {
+    @apply transform transition-all duration-200 hover:scale-110 hover:rotate-6;
+}
+
+.icon-badge {
+    @apply w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-110;
+}
+
+/* Pulse animation for loading states */
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(168, 85, 247, 0.6);
+        transform: scale(1.02);
+    }
+}
+
+.pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Shake animation for errors */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+/* Slide in animations */
+@keyframes slideInUp {
+    0% {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.slide-in-up {
+    animation: slideInUp 0.3s ease-out;
+}
+
+/* Bounce animation */
+@keyframes bounce-in {
+    0% {
+        transform: scale(0.3);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    70% {
+        transform: scale(0.9);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.bounce-in {
+    animation: bounce-in 0.5s ease-out;
+}
+
+/* Gradient text animation */
+@keyframes gradient-shift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.animate-gradient {
+    background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c);
+    background-size: 400% 400%;
+    animation: gradient-shift 4s ease infinite;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Universal interactive element cursors */
+a {
+    @apply cursor-pointer;
+}
+a:disabled {
+    @apply cursor-not-allowed;
+}
+button {
+    @apply cursor-pointer;
+}
+button:disabled {
+    @apply cursor-not-allowed;
+}
+label {
+    @apply cursor-pointer;
+}
+label:has(input:disabled) {
+    @apply cursor-not-allowed;
+}
+[role="button"] {
+    @apply cursor-pointer;
+}
+[role="button"]:disabled,
+[role="button"][aria-disabled="true"] {
+    @apply cursor-not-allowed;
+}
+.clickable {
+    @apply cursor-pointer;
+}
+.non-interactive {
+    @apply cursor-default;
 }

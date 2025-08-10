@@ -7,7 +7,7 @@ import { useLocale } from "next-intl";
 import { enumerateUtcYmdInclusive, formatHumanDate, formatHumanYmd } from "@/lib/dates";
 import FancyCheckbox from "@/app/components/FancyCheckbox";
 import Loader from "@/app/components/Loader";
-import { LinkIcon, CheckIcon } from "lucide-react";
+import { LinkIcon, CheckIcon, UsersIcon, UtensilsIcon, BookOpenIcon, BarChart3Icon } from "lucide-react";
 import { toast } from "sonner";
 
 type MealType = "BREAKFAST" | "LUNCH" | "DINNER";
@@ -100,13 +100,7 @@ export default function TripPage() {
     useEffect(() => {
         async function loadInitialData() {
             setIsLoading(true);
-            await Promise.all([
-                refreshTrip(),
-                refreshParticipants(),
-                refreshSchedule(),
-                refreshRecipes(),
-                refreshInvite()
-            ]);
+            await Promise.all([refreshTrip(), refreshParticipants(), refreshSchedule(), refreshRecipes(), refreshInvite()]);
             setIsLoading(false);
         }
         loadInitialData();
@@ -244,10 +238,7 @@ export default function TripPage() {
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                     <div className="space-y-3">
                         <div className="flex items-center gap-3">
-                            <Link 
-                                href="/admin" 
-                                className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-purple-600 transition-colors font-medium"
-                            >
+                            <Link href="/admin" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-purple-600 transition-colors font-medium">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                                 </svg>
@@ -255,9 +246,7 @@ export default function TripPage() {
                             </Link>
                         </div>
                         <div className="flex items-center gap-4">
-                            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                                {trip?.name ?? "Trip"}
-                            </h1>
+                            <h1 className="text-4xl font-bold animate-gradient">{trip?.name ?? "Trip"}</h1>
                             {invite && <CopyInviteButton token={invite.token} />}
                         </div>
                         <div className="text-lg text-slate-600 font-medium">
@@ -280,15 +269,15 @@ export default function TripPage() {
                                 </div>
                             )}
                         </button>
-                        <a 
-                            className="btn btn-secondary" 
-                            href={`/api/trips/${tripId}/schedule/ics`} 
-                            target="_blank" 
-                            rel="noreferrer"
-                        >
+                        <a className="btn btn-secondary" href={`/api/trips/${tripId}/schedule/ics`} target="_blank" rel="noreferrer">
                             <div className="flex items-center gap-2">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                    />
                                 </svg>
                                 Export ICS
                             </div>
@@ -304,17 +293,18 @@ export default function TripPage() {
                 <Stat title="Helpers/meal" value={helpersPerMeal} />
             </div>
 
-            <nav className="bg-white/60 backdrop-blur-sm rounded-2xl p-2 border border-white/50 shadow-lg">
+            <nav className="bg-white/60 backdrop-blur-sm rounded-2xl p-2 border border-white/50 shadow-lg slide-in-up">
                 <div className="flex flex-wrap gap-2">
-                    {(["summary", "schedule", "meals", "participants", "recipes", "groceries"] as const).map(t => (
+                    {(["summary", "schedule", "meals", "participants", "recipes", "groceries"] as const).map((t, index) => (
                         <button
                             key={t}
                             className={`px-6 py-3 rounded-xl font-medium text-sm transition-all duration-200 ${
-                                tab === t 
-                                    ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25 transform scale-105" 
+                                tab === t
+                                    ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25 transform scale-105 bounce-in"
                                     : "text-slate-600 hover:text-purple-600 hover:bg-white/70 hover:shadow-md hover:scale-105"
                             }`}
                             onClick={() => setTab(t)}
+                            style={{ animationDelay: `${index * 0.1}s` }}
                         >
                             {t[0].toUpperCase() + t.slice(1)}
                         </button>
@@ -323,11 +313,31 @@ export default function TripPage() {
             </nav>
 
             {tab === "summary" && (
-                <section className="card space-y-4">
+                <section className="card space-y-6">
                     <div className="flex items-center justify-between gap-3">
-                        <h2 className="font-medium">Summary</h2>
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
+                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                                    />
+                                </svg>
+                            </div>
+                            <h2 className="text-2xl font-bold text-slate-800">Trip Summary</h2>
+                        </div>
                         <button className="btn btn-secondary" onClick={() => typeof window !== "undefined" && window.print()}>
-                            Print
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                                />
+                            </svg>
+                            Print Summary
                         </button>
                     </div>
 
@@ -356,11 +366,53 @@ export default function TripPage() {
                                     <div className="text-sm text-slate-700">{formatHumanYmd(date, locale)}</div>
                                     <ul className="grid sm:grid-cols-3 gap-2">
                                         {arr.map(s => (
-                                            <li key={s.id} className="border rounded p-2 bg-white/70">
-                                                <div className="text-sm font-medium">{s.mealType}</div>
-                                                <div className="text-xs text-slate-600">Recipes: {recipeTitles(s)}</div>
-                                                <div className="text-xs text-slate-600">Cooks: {cooksFor(s)}</div>
-                                                <div className="text-xs text-slate-600">Helpers: {helpersFor(s)}</div>
+                                            <li
+                                                key={s.id}
+                                                className="border border-slate-200/50 rounded-xl p-4 bg-gradient-to-br from-white to-slate-50/80 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200"
+                                            >
+                                                <div className="flex items-center gap-2 mb-3">
+                                                    <div className="w-8 h-8 bg-gradient-to-r from-orange-400 to-red-500 rounded-lg flex items-center justify-center">
+                                                        {s.mealType === "BREAKFAST" && <span className="text-white text-lg">🌅</span>}
+                                                        {s.mealType === "LUNCH" && <span className="text-white text-lg">☀️</span>}
+                                                        {s.mealType === "DINNER" && <span className="text-white text-lg">🌙</span>}
+                                                    </div>
+                                                    <div className="text-base font-semibold text-slate-800">{s.mealType}</div>
+                                                </div>
+                                                <div className="space-y-2 text-xs">
+                                                    <div className="flex items-center gap-2 text-slate-600">
+                                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={2}
+                                                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                                                            />
+                                                        </svg>
+                                                        <span>Recipes: {recipeTitles(s) || "Not assigned"}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-slate-600">
+                                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={2}
+                                                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                                            />
+                                                        </svg>
+                                                        <span>Cooks: {cooksFor(s) || "Not assigned"}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-slate-600">
+                                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={2}
+                                                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                                                            />
+                                                        </svg>
+                                                        <span>Helpers: {helpersFor(s) || "Not assigned"}</span>
+                                                    </div>
+                                                </div>
                                             </li>
                                         ))}
                                     </ul>
@@ -388,8 +440,15 @@ export default function TripPage() {
             )}
 
             {tab === "meals" && (
-                <section className="card space-y-3">
-                    <h2 className="font-medium">Define meals</h2>
+                <section className="card space-y-6">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-teal-500 rounded-xl flex items-center justify-center">
+                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                        </div>
+                        <h2 className="text-2xl font-bold text-slate-800">Define Meals</h2>
+                    </div>
                     <MealAdder onAdd={(date, meals) => addDay(date, meals)} />
                     {days.length > 0 ? (
                         <div className="text-sm text-slate-600">Pending days: {days.map(d => `${d.date} [${d.mealTypes.join(", ")}]`).join(", ")}</div>
@@ -410,17 +469,43 @@ export default function TripPage() {
             )}
 
             {tab === "participants" && (
-                <section className="card space-y-4">
-                    <h2 className="font-medium">Participants</h2>
-                    <div className="grid gap-3 sm:grid-cols-3">
-                        <input className="input" placeholder="Name" value={participantsName} onChange={e => setParticipantsName(e.target.value)} />
-                        <select className="input" value={preference} onChange={e => setPreference(parseInt(e.target.value))}>
-                            <option value={2}>Loves cooking (+2)</option>
-                            <option value={1}>Enjoys cooking (+1)</option>
-                            <option value={0}>Neutral (0)</option>
-                            <option value={-1}>Prefers not to (-1)</option>
-                            <option value={-2}>Hates cooking (-2)</option>
-                        </select>
+                <section className="card space-y-6">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
+                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                                />
+                            </svg>
+                        </div>
+                        <h2 className="text-2xl font-bold text-slate-800">Participants</h2>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="relative">
+                            <input className="input w-full pl-10" placeholder="Participant name" value={participantsName} onChange={e => setParticipantsName(e.target.value)} />
+                            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div className="relative">
+                            <select className="input w-full appearance-none pr-10" value={preference} onChange={e => setPreference(parseInt(e.target.value))}>
+                                <option value={2}>🔥 Loves cooking (+2)</option>
+                                <option value={1}>😊 Enjoys cooking (+1)</option>
+                                <option value={0}>😐 Neutral (0)</option>
+                                <option value={-1}>😕 Prefers not to (-1)</option>
+                                <option value={-2}>😤 Hates cooking (-2)</option>
+                            </select>
+                            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
                     </div>
 
                     {trip && <AvailabilityPicker startDate={trip.startDate} endDate={trip.endDate} onChange={dates => setAvailabilityInput(dates.join(","))} />}
@@ -436,21 +521,56 @@ export default function TripPage() {
                         )}
                     </button>
 
-                    <ul className="divide-y">
+                    <ul className="divide-y divide-slate-100">
                         {participants.map(p => (
-                            <li key={p.id} className="py-2 flex items-center justify-between">
-                                <div className="min-w-0">
-                                    <div className="font-medium">{p.name}</div>
-                                    <div className="text-sm text-slate-600">
-                                        Pref: {p.cookingPreference} • Available: {p.availabilities.map(a => formatHumanDate(a.date, locale)).join(", ") || "-"}
+                            <li key={p.id} className="py-4 flex items-center justify-between hover:bg-slate-50/50 rounded-lg px-4 -mx-4 transition-colors">
+                                <div className="min-w-0 flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                                        {p.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <div className="font-semibold text-slate-800">{p.name}</div>
+                                        <div className="text-sm text-slate-600 flex items-center gap-2">
+                                            <span className="flex items-center gap-1">
+                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                                                    />
+                                                </svg>
+                                                Pref: {p.cookingPreference}
+                                            </span>
+                                            <span>•</span>
+                                            <span className="flex items-center gap-1">
+                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                    />
+                                                </svg>
+                                                {p.availabilities.length > 0 ? `${p.availabilities.length} days available` : "No availability set"}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="shrink-0 flex gap-2">
                                     <Link href={`/participants/${p.id}`} className="btn btn-secondary">
-                                        Edit schedule
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                            />
+                                        </svg>
+                                        Edit
                                     </Link>
                                     <button
-                                        className="btn btn-secondary"
+                                        className="btn btn-secondary hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors"
                                         onClick={async () => {
                                             if (!confirm(`Remove ${p.name} from trip?`)) return;
                                             await fetch(`/api/participants/${p.id}`, { method: "DELETE" });
@@ -458,19 +578,58 @@ export default function TripPage() {
                                             await refreshSchedule();
                                         }}
                                     >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                            />
+                                        </svg>
                                         Remove
                                     </button>
                                 </div>
                             </li>
                         ))}
-                        {participants.length === 0 && <li className="py-2 text-sm text-slate-500">No participants yet.</li>}
+                        {participants.length === 0 && (
+                            <li className="py-8 text-center">
+                                <div className="flex flex-col items-center gap-3">
+                                    <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center">
+                                        <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                                            />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div className="text-sm font-medium text-slate-700">No participants yet</div>
+                                        <div className="text-xs text-slate-500">Add participants using the form above</div>
+                                    </div>
+                                </div>
+                            </li>
+                        )}
                     </ul>
                 </section>
             )}
 
             {tab === "recipes" && (
-                <section className="card space-y-3">
-                    <h2 className="font-medium">Recipes</h2>
+                <section className="card space-y-6">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center">
+                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                                />
+                            </svg>
+                        </div>
+                        <h2 className="text-2xl font-bold text-slate-800">Recipes</h2>
+                    </div>
                     <div className="grid gap-3 sm:grid-cols-4">
                         <input className="input" placeholder="Title" value={recipeTitle} onChange={e => setRecipeTitle(e.target.value)} />
                         <input
@@ -516,7 +675,20 @@ export default function TripPage() {
             )}
 
             {tab === "schedule" && (
-                <section className="card space-y-3">
+                <section className="card space-y-6">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                />
+                            </svg>
+                        </div>
+                        <h2 className="text-2xl font-bold text-slate-800">Schedule Management</h2>
+                    </div>
                     <div className="flex items-center gap-2 flex-wrap justify-between">
                         <div className="flex items-center gap-2">
                             <label className="text-sm text-slate-600">Cooks</label>
@@ -588,8 +760,20 @@ export default function TripPage() {
             {/* invites tab removed; invite link moved next to title */}
 
             {tab === "groceries" && (
-                <section className="card space-y-3">
-                    <h2 className="font-medium">Groceries</h2>
+                <section className="card space-y-6">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
+                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17M17 13a2 2 0 100 4 2 2 0 000-4zM9 19a2 2 0 11-4 0 2 2 0 014 0z"
+                                />
+                            </svg>
+                        </div>
+                        <h2 className="text-2xl font-bold text-slate-800">Grocery List</h2>
+                    </div>
                     <div className="flex gap-3">
                         <input className="input" type="date" value={groceriesDate} onChange={e => setGroceriesDate(e.target.value)} />
                         <button className="btn btn-primary" onClick={generateGroceries} disabled={isGeneratingGroceries || !groceriesDate}>
@@ -640,8 +824,8 @@ function CopyInviteButton({ token }: { token: string }) {
             type="button"
             onClick={onCopy}
             className={`p-3 rounded-xl transition-all duration-200 transform hover:scale-110 ${
-                copied 
-                    ? "bg-gradient-to-r from-green-400 to-green-500 text-white shadow-lg shadow-green-500/25" 
+                copied
+                    ? "bg-gradient-to-r from-green-400 to-green-500 text-white shadow-lg shadow-green-500/25"
                     : "bg-white/60 backdrop-blur-sm border border-white/50 text-slate-600 hover:text-purple-600 hover:bg-white/80 shadow-md hover:shadow-lg"
             }`}
             title={copied ? "Copied" : "Copy invite link"}
@@ -653,10 +837,45 @@ function CopyInviteButton({ token }: { token: string }) {
 }
 
 function Stat({ title, value }: { title: string; value: string | number }) {
+    const getIcon = (title: string) => {
+        switch (title.toLowerCase()) {
+            case "participants":
+                return <UsersIcon className="w-5 h-5" />;
+            case "meals":
+                return <UtensilsIcon className="w-5 h-5" />;
+            case "recipes":
+                return <BookOpenIcon className="w-5 h-5" />;
+            default:
+                return <BarChart3Icon className="w-5 h-5" />;
+        }
+    };
+
+    const getGradient = (title: string) => {
+        switch (title.toLowerCase()) {
+            case "participants":
+                return "from-blue-500 to-indigo-500";
+            case "meals":
+                return "from-orange-500 to-red-500";
+            case "recipes":
+                return "from-yellow-500 to-orange-500";
+            default:
+                return "from-purple-500 to-pink-500";
+        }
+    };
+
     return (
-        <div className="stat-card">
-            <div className="text-sm text-slate-500 font-medium uppercase tracking-wide">{title}</div>
-            <div className="text-2xl font-bold text-slate-700 mt-1">{value}</div>
+        <div className="group stat-card hover:scale-105 transition-all duration-300">
+            <div className="flex items-center justify-between mb-2">
+                <div className="text-sm text-slate-500 font-medium uppercase tracking-wide">{title}</div>
+                <div
+                    className={`w-8 h-8 bg-gradient-to-r ${getGradient(
+                        title
+                    )} rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-200`}
+                >
+                    {getIcon(title)}
+                </div>
+            </div>
+            <div className="text-3xl font-bold text-slate-700">{value}</div>
         </div>
     );
 }

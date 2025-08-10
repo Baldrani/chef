@@ -45,7 +45,7 @@ export default function Home() {
             </main>
 
             <footer className="px-6 py-8 border-t bg-white/60">
-                <div className="max-w-6xl mx-auto text-sm text-slate-600">{t("footer", { year: new Date().getFullYear() })}</div>
+                <div className="max-w-6xl mx-auto text-sm text-slate-600">{t("footer", { year: new Date().getFullYear(), name: '<a href="">Maël Mayon</a>' })}</div>
             </footer>
         </div>
     );
