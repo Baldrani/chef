@@ -4,6 +4,24 @@ import prisma from "@/lib/prisma";
 import { parseDateOnlyToUtcNoon } from "@/lib/dates";
 import type { MealType } from "@prisma/client";
 
+export async function GET(req: NextRequest) {
+    const url = new URL(req.url);
+    const match = url.pathname.match(/\/api\/meals\/([^/]+)/);
+    const mealSlotId = match?.[1];
+    if (!mealSlotId) return NextResponse.json({ error: "mealSlotId missing in path" }, { status: 400 });
+
+    const meal = await prisma.mealSlot.findUnique({
+        where: { id: mealSlotId },
+        include: {
+            assignments: { include: { participant: true } },
+            recipes: { include: { recipe: true } },
+        },
+    });
+
+    if (!meal) return NextResponse.json({ error: "Meal not found" }, { status: 404 });
+    return NextResponse.json(meal);
+}
+
 const PatchSchema = z
     .object({
         date: z.string().date().optional(),

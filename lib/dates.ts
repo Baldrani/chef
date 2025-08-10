@@ -24,3 +24,26 @@ export function enumerateUtcYmdInclusive(startIso: string, endIso: string): stri
     }
     return days;
 }
+
+export function formatHumanDate(dateIso: string, locale?: string): string {
+    const d = new Date(dateIso);
+    const fmt = new Intl.DateTimeFormat(locale || undefined, {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+    });
+    return fmt.format(d);
+}
+
+export function formatHumanYmd(ymd: string, locale?: string): string {
+    const [y, m, d] = ymd.split("-").map(v => parseInt(v, 10));
+    const date = new Date(Date.UTC(y, (m || 1) - 1, d || 1, 12, 0, 0));
+    const fmt = new Intl.DateTimeFormat(locale || undefined, {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+    });
+    return fmt.format(date);
+}

@@ -7,6 +7,8 @@ const Schema = z.object({
     maxCooksPerMeal: z.number().int().min(1).max(6).optional(),
     maxHelpersPerMeal: z.number().int().min(0).max(6).optional(),
     avoidConsecutive: z.boolean().optional(),
+    autoAssignRecipes: z.boolean().optional(),
+    recipesPerMeal: z.number().int().min(1).max(5).optional(),
 });
 
 export async function POST(req: NextRequest) {

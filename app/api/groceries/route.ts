@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
     });
 
     const message = chat.choices[0]?.message?.content;
+    console.log(message);
     let parsedJson: GroceryList = { items: [] };
     try {
         parsedJson = JSON.parse(message || '{"items":[]}');

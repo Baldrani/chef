@@ -7,8 +7,12 @@ export async function GET(req: NextRequest) {
     const tripId = match?.[1];
     if (!tripId) return NextResponse.json({ error: "tripId missing in path" }, { status: 400 });
 
-    const invites = await prisma.invite.findMany({ where: { tripId }, orderBy: { createdAt: "desc" } });
-    return NextResponse.json(invites);
+    let invite = await prisma.invite.findFirst({ where: { tripId }, orderBy: { createdAt: "asc" } });
+    if (!invite) {
+        const token = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+        invite = await prisma.invite.create({ data: { tripId, token } });
+    }
+    return NextResponse.json(invite);
 }
 
 export async function POST(req: NextRequest) {

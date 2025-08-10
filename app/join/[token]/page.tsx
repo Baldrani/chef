@@ -4,12 +4,14 @@ import { useParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useLocale } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
-import { enumerateUtcYmdInclusive } from "@/lib/dates";
+import { enumerateUtcYmdInclusive, formatHumanYmd } from "@/lib/dates";
+import Loader from "@/app/components/Loader";
 
 export default function JoinPage() {
     const params = useParams<{ token: string }>();
     const router = useRouter();
     const token = (params?.token as string) || "";
+    const locale = useLocale();
 
     const [name, setName] = useState("");
     const [pref, setPref] = useState(0);
@@ -17,14 +19,22 @@ export default function JoinPage() {
     const [trip, setTrip] = useState<{ name: string; startDate: string; endDate: string } | null>(null);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [isLoadingTrip, setIsLoadingTrip] = useState(true);
 
     useEffect(() => {
         (async () => {
-            if (!token) return;
-            const res = await fetch(`/api/invites/${token}`, { cache: "no-store" });
-            if (!res.ok) return;
-            const data = await res.json();
-            setTrip(data.trip);
+            if (!token) {
+                setIsLoadingTrip(false);
+                return;
+            }
+            try {
+                const res = await fetch(`/api/invites/${token}`, { cache: "no-store" });
+                if (!res.ok) return;
+                const data = await res.json();
+                setTrip(data.trip);
+            } finally {
+                setIsLoadingTrip(false);
+            }
         })();
     }, [token]);
 
@@ -61,17 +71,25 @@ export default function JoinPage() {
         }
     }
 
+    if (isLoadingTrip) {
+        return (
+            <div className="max-w-md mx-auto p-6">
+                <Loader size="lg" text="Loading invitation..." className="py-20" />
+            </div>
+        );
+    }
+
     return (
         <div className="max-w-md mx-auto p-6 space-y-4">
             <h1 className="text-xl font-semibold">Join {trip?.name ?? "trip"}</h1>
             <input className="border rounded px-3 py-2 w-full" placeholder="Your name" value={name} onChange={e => setName(e.target.value)} />
             <label className="block text-sm">Cooking preference</label>
             <select className="border rounded px-3 py-2 w-full" value={pref} onChange={e => setPref(parseInt(e.target.value))}>
-                <option value={2}>Loves cooking (+2)</option>
-                <option value={1}>Enjoys cooking (+1)</option>
-                <option value={0}>Neutral (0)</option>
-                <option value={-1}>Prefers not to (-1)</option>
-                <option value={-2}>Hates cooking (-2)</option>
+                <option value={2}>Loves cooking</option>
+                <option value={1}>Enjoys cooking</option>
+                <option value={0}>Neutral</option>
+                <option value={-1}>Prefers not to </option>
+                <option value={-2}>Hates cooking</option>
             </select>
 
             {allDates.length > 0 && (
@@ -81,7 +99,7 @@ export default function JoinPage() {
                         {allDates.map(d => (
                             <label key={d} className="flex items-center gap-2 border rounded px-2 py-2">
                                 <input type="checkbox" checked={!!selectedDates[d]} onChange={() => toggle(d)} />
-                                <span>{d}</span>
+                                <span>{formatHumanYmd(d, locale)}</span>
                             </label>
                         ))}
                     </div>

@@ -7,6 +7,8 @@ export type GenerateScheduleOptions = {
     maxCooksPerMeal?: number;
     maxHelpersPerMeal?: number;
     avoidConsecutive?: boolean; // avoid assigning same person on back-to-back meal slots by date order
+    autoAssignRecipes?: boolean;
+    recipesPerMeal?: number;
 };
 
 type ParticipantWithMeta = Participant & {
@@ -26,13 +28,21 @@ function isAvailableOnDate(participant: ParticipantWithMeta, date: Date): boolea
     return participant.availabilityDates.some(d => isSameDay(d, date));
 }
 
-export async function generateSchedule({ tripId, maxCooksPerMeal = 2, maxHelpersPerMeal = 0, avoidConsecutive = true }: GenerateScheduleOptions) {
-    const [participantsRaw, mealSlots] = await Promise.all([
+export async function generateSchedule({
+    tripId,
+    maxCooksPerMeal = 2,
+    maxHelpersPerMeal = 0,
+    avoidConsecutive = true,
+    autoAssignRecipes = false,
+    recipesPerMeal = 1,
+}: GenerateScheduleOptions) {
+    const [participantsRaw, mealSlots, recipes] = await Promise.all([
         prisma.participant.findMany({
             where: { tripId },
             include: { availabilities: true, assignments: true },
         }),
         prisma.mealSlot.findMany({ where: { tripId }, orderBy: [{ date: "asc" }, { mealType: "asc" }] }),
+        autoAssignRecipes ? prisma.recipe.findMany({ where: { tripId }, orderBy: { createdAt: "asc" } }) : Promise.resolve([] as Array<{ id: string }>),
     ]);
 
     const participants: ParticipantWithMeta[] = participantsRaw.map(p => ({
@@ -43,6 +53,16 @@ export async function generateSchedule({ tripId, maxCooksPerMeal = 2, maxHelpers
     }));
 
     const plannedAssignments: Array<Pick<Assignment, "mealSlotId" | "participantId" | "role">> = [];
+    const plannedRecipeAssignments: Array<{ mealSlotId: string; recipeId: string }> = [];
+
+    // When auto-assigning recipes, keep existing manual assignments and only fill gaps
+    const currentRecipeAssignments = autoAssignRecipes ? await prisma.recipeAssignment.findMany({ where: { mealSlotId: { in: mealSlots.map(s => s.id) } } }) : [];
+    const existingBySlot = new Map<string, Set<string>>();
+    for (const a of currentRecipeAssignments) {
+        const set = existingBySlot.get(a.mealSlotId) ?? new Set<string>();
+        set.add(a.recipeId);
+        existingBySlot.set(a.mealSlotId, set);
+    }
 
     const slotIndexById = new Map<string, number>();
     mealSlots.forEach((s, idx) => slotIndexById.set(s.id, idx));
@@ -69,6 +89,19 @@ export async function generateSchedule({ tripId, maxCooksPerMeal = 2, maxHelpers
 
         pickPeople(Math.min(maxCooksPerMeal, available.length), "COOK");
         if (maxHelpersPerMeal > 0) pickPeople(Math.min(maxHelpersPerMeal, available.length), "HELPER");
+
+        if (autoAssignRecipes && recipes.length > 0 && recipesPerMeal > 0) {
+            const existing = existingBySlot.get(slot.id) ?? new Set<string>();
+            const deficit = Math.max(0, recipesPerMeal - existing.size);
+            for (let addIdx = 0; addIdx < deficit; addIdx++) {
+                const rr = recipes[(slotIdx * recipesPerMeal + addIdx) % recipes.length];
+                if (existing.has(rr.id)) continue;
+                if (!plannedRecipeAssignments.some(a => a.mealSlotId === slot.id && a.recipeId === rr.id)) {
+                    plannedRecipeAssignments.push({ mealSlotId: slot.id, recipeId: rr.id });
+                    existing.add(rr.id);
+                }
+            }
+        }
     }
 
     await prisma.$transaction(async tx => {
@@ -82,7 +115,11 @@ export async function generateSchedule({ tripId, maxCooksPerMeal = 2, maxHelpers
             await tx.assignment.deleteMany({ where: { mealSlotId } });
             if (arr.length > 0) await tx.assignment.createMany({ data: arr });
         }
+
+        if (autoAssignRecipes && plannedRecipeAssignments.length > 0) {
+            await tx.recipeAssignment.createMany({ data: plannedRecipeAssignments, skipDuplicates: true });
+        }
     });
 
-    return { ok: true, assigned: plannedAssignments.length };
+    return { ok: true, assignedParticipants: plannedAssignments.length, addedRecipeAssignments: plannedRecipeAssignments.length };
 }
