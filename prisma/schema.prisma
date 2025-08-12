@@ -21,17 +21,18 @@ enum AssignmentRole {
 }
 
 model Trip {
-  id           String      @id @default(cuid())
+  id           String        @id @default(cuid())
   name         String
   startDate    DateTime
   endDate      DateTime
-  createdBy    String?     // User who created the trip
-  creator      User?       @relation(fields: [createdBy], references: [id])
+  createdBy    String?       // User who created the trip
+  creator      User?         @relation(fields: [createdBy], references: [id])
   mealSlots    MealSlot[]
   participants Participant[]
   recipes      Recipe[]
   invites      Invite[]
-  createdAt    DateTime    @default(now())
+  groceryLists GroceryList[]
+  createdAt    DateTime      @default(now())
 }
 
 model MealSlot {
@@ -99,6 +100,31 @@ model RecipeAssignment {
   recipe     Recipe   @relation(fields: [recipeId], references: [id])
 
   @@unique([mealSlotId, recipeId])
+}
+
+model GroceryList {
+  id                   String        @id @default(cuid())
+  tripId               String
+  trip                 Trip          @relation(fields: [tripId], references: [id])
+  date                 DateTime
+  servingsMultiplier   Float         @default(1.0)
+  autoCalculateServings Boolean      @default(false)
+  items                GroceryItem[]
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  @@unique([tripId, date])
+}
+
+model GroceryItem {
+  id            String      @id @default(cuid())
+  groceryListId String
+  groceryList   GroceryList @relation(fields: [groceryListId], references: [id], onDelete: Cascade)
+  name          String
+  quantity      String?
+  category      String?
+  isChecked     Boolean     @default(false)
+  createdAt     DateTime    @default(now())
 }
 
 model Invite {

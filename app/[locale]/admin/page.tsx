@@ -61,7 +61,7 @@ export default function AdminPage() {
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-8">
             <div className="text-center space-y-4">
-                <h1 className="text-5xl font-bold animate-gradient">
+                <h1 className="text-5xl font-bold animate-gradient h-16">
                     {t("title")}
                 </h1>
                 <p className="text-xl text-slate-600 font-medium">Manage your cooking adventures</p>
@@ -100,7 +100,7 @@ export default function AdminPage() {
                     <h2 className="text-2xl font-bold text-slate-800">Your Trips</h2>
                     <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {trips.map(trip => (
-                            <li key={trip.id} className="card card-interactive group">
+                            <li key={trip.id} className="card card-interactive group" onClick={() => router.push(`/trips/${trip.id}`)}>
                                 <div className="space-y-4">
                                     <div>
                                         <div className="text-xl font-bold text-slate-800 group-hover:text-purple-600 transition-colors">
@@ -115,7 +115,6 @@ export default function AdminPage() {
                                     </div>
                                     <button 
                                         className="btn btn-primary w-full group-hover:scale-105 transition-transform" 
-                                        onClick={() => router.push(`/trips/${trip.id}`)}
                                     >
                                         <div className="flex items-center gap-2 justify-center">
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

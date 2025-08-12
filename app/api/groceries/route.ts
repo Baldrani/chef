@@ -9,20 +9,86 @@ const Schema = z.object({
     date: z.string().date(),
     servingsMultiplier: z.number().min(0.25).max(4).optional(),
     autoCalculateServings: z.boolean().optional(),
+    language: z.enum(["en", "fr"]).optional(),
 });
 
 type GroceryList = {
     items: Array<{ name: string; quantity?: string; category?: string }>;
 };
 
-const systemPrompt = `You are a meticulous chef. Given recipe titles and optional notes for a specific day, output a concise grocery list as strict JSON with shape {"items":[{"name":"string","quantity":"string?","category":"string?"}...]}. Merge duplicates, use common names, infer quantities, prefer metric (g, kg, L), and keep it minimal.`;
+
+
+const systemPrompts = {
+    en: `You are a meticulous chef. Given recipe titles and optional notes for a specific day, output a concise grocery list as strict JSON with shape {"items":[{"name":"string","quantity":"string?","category":"string?"}...]}. Merge duplicates, use common names, infer quantities, prefer metric (g, kg, L), and keep it minimal.`,
+    fr: `Vous êtes un chef méticuleux. À partir des titres de recettes et des notes optionnelles pour un jour spécifique, générez une liste d'épicerie concise au format JSON strict avec la forme {"items":[{"name":"string","quantity":"string?","category":"string?"}...]}. Fusionnez les doublons, utilisez des noms courants, inférez les quantités, préférez le métrique (g, kg, L), et restez minimal. Répondez en français.`
+};
+
+export async function GET(req: NextRequest) {
+    const url = new URL(req.url);
+    const tripId = url.searchParams.get('tripId');
+    const date = url.searchParams.get('date');
+
+    if (!tripId || !date) {
+        return NextResponse.json({ error: 'tripId and date are required' }, { status: 400 });
+    }
+
+    const day = parseDateOnlyToUtcNoon(date);
+
+    const groceryList = await prisma.groceryList.findUnique({
+        where: { tripId_date: { tripId, date: day } },
+        include: { items: true }
+    });
+
+    if (!groceryList) {
+        return NextResponse.json({ items: [] });
+    }
+
+    // Get meal information for the summary
+    const slots = await prisma.mealSlot.findMany({
+        where: { tripId, date: day },
+        include: { recipes: { include: { recipe: true } } },
+    });
+
+    // Count available participants for this date
+    const availableParticipants = await prisma.participant.findMany({
+        where: {
+            tripId,
+            OR: [
+                { availabilities: { none: {} } },
+                { availabilities: { some: { date: day } } }
+            ]
+        }
+    });
+
+    const summary = {
+        participantCount: availableParticipants.length,
+        meals: slots.map(slot => ({
+            mealType: slot.mealType,
+            recipes: slot.recipes.map(ra => ({
+                title: ra.recipe.title,
+                serves: ra.recipe.serves
+            }))
+        })),
+        servingsMultiplier: groceryList.servingsMultiplier
+    };
+
+    return NextResponse.json({
+        items: groceryList.items.map(item => ({
+            name: item.name,
+            quantity: item.quantity,
+            category: item.category,
+            isChecked: item.isChecked
+        })),
+        summary
+    });
+}
 
 export async function POST(req: NextRequest) {
     const body = await req.json();
     const parsed = Schema.safeParse(body);
     if (!parsed.success) return NextResponse.json({ error: parsed.error.format() }, { status: 400 });
 
-    const { tripId, date, servingsMultiplier = 1, autoCalculateServings = false } = parsed.data;
+    const { tripId, date, servingsMultiplier = 1, autoCalculateServings = false, language = "en" } = parsed.data;
     const day = parseDateOnlyToUtcNoon(date);
 
     const slots = await prisma.mealSlot.findMany({
@@ -34,22 +100,22 @@ export async function POST(req: NextRequest) {
 
     if (recipes.length === 0) return NextResponse.json({ items: [] });
 
+    // Count participants available on this date (needed for both auto-calculation and summary)
+    const availableParticipants = await prisma.participant.findMany({
+        where: {
+            tripId,
+            OR: [
+                // Participants with no availability records (assumed available)
+                { availabilities: { none: {} } },
+                // Participants with availability record for this date
+                { availabilities: { some: { date: day } } }
+            ]
+        }
+    });
+
     let finalServingsMultiplier = servingsMultiplier;
 
     if (autoCalculateServings) {
-        // Count participants available on this date
-        const availableParticipants = await prisma.participant.findMany({
-            where: {
-                tripId,
-                OR: [
-                    // Participants with no availability records (assumed available)
-                    { availabilities: { none: {} } },
-                    // Participants with availability record for this date
-                    { availabilities: { some: { date: day } } }
-                ]
-            }
-        });
-
         const participantCount = availableParticipants.length;
 
         console.log("participantCount", participantCount);
@@ -77,7 +143,7 @@ export async function POST(req: NextRequest) {
         chat = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
-            { role: "system", content: systemPrompt },
+            { role: "system", content: systemPrompts[language] },
             { role: "user", content: userContent },
         ],
         temperature: 0.2,
@@ -98,5 +164,58 @@ export async function POST(req: NextRequest) {
         parsedJson = { items: [] };
     }
 
-    return NextResponse.json(parsedJson);
+    // Save or update the grocery list in the database
+    const groceryList = await prisma.groceryList.upsert({
+        where: { tripId_date: { tripId, date: day } },
+        update: {
+            servingsMultiplier: finalServingsMultiplier,
+            autoCalculateServings,
+            updatedAt: new Date(),
+            items: {
+                deleteMany: {}, // Remove existing items
+                create: parsedJson.items.map(item => ({
+                    name: item.name,
+                    quantity: item.quantity,
+                    category: item.category
+                }))
+            }
+        },
+        create: {
+            tripId,
+            date: day,
+            servingsMultiplier: finalServingsMultiplier,
+            autoCalculateServings,
+            items: {
+                create: parsedJson.items.map(item => ({
+                    name: item.name,
+                    quantity: item.quantity,
+                    category: item.category
+                }))
+            }
+        },
+        include: { items: true }
+    });
+
+    // Create summary information
+    const summary = {
+        participantCount: availableParticipants.length,
+        meals: slots.map(slot => ({
+            mealType: slot.mealType,
+            recipes: slot.recipes.map(ra => ({
+                title: ra.recipe.title,
+                serves: ra.recipe.serves
+            }))
+        })),
+        servingsMultiplier: finalServingsMultiplier
+    };
+
+    return NextResponse.json({
+        items: groceryList.items.map(item => ({
+            name: item.name,
+            quantity: item.quantity,
+            category: item.category,
+            isChecked: item.isChecked
+        })),
+        summary
+    });
 }

@@ -11,12 +11,27 @@ type ApiRequestInit = Omit<RequestInit, 'method'> & {
  */
 export async function apiRequest(endpoint: string, options: ApiRequestInit = {}): Promise<Response> {
   // Ensure the endpoint starts with /api/
-  const apiEndpoint = endpoint.startsWith('/api/') ? endpoint : `/api/${endpoint}`;
+  let apiEndpoint = endpoint.startsWith('/api/') ? endpoint : `/api/${endpoint}`;
   
-  // Use absolute URL to bypass locale routing
-  const url = `${window.location.origin}${apiEndpoint}`;
+  // For client-side requests, always use absolute URL to bypass locale routing
+  if (typeof window !== 'undefined') {
+    // Get the current origin and construct absolute URL
+    const origin = window.location.origin;
+    const finalUrl = `${origin}${apiEndpoint}`;
+    
+    console.log('API Request:', { endpoint, apiEndpoint, origin, finalUrl });
+    
+    return fetch(finalUrl, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+      ...options,
+    });
+  }
   
-  return fetch(url, {
+  // Server-side fallback
+  return fetch(apiEndpoint, {
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,

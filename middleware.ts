@@ -7,7 +7,14 @@ const intlMiddleware = createMiddleware(routing);
 
 export default withAuth(
   function middleware(req: NextRequest) {
-    // Run the intl middleware for all requests
+    const { pathname } = req.nextUrl;
+    
+    // Skip intl middleware for API routes
+    if (pathname.startsWith('/api/')) {
+      return;
+    }
+    
+    // Run the intl middleware for non-API requests
     return intlMiddleware(req);
   },
   {
@@ -45,7 +52,8 @@ export default withAuth(
 
 export const config = {
   matcher: [
-    // Match all paths except static files and api routes that should be public
-    "/((?!api/auth|api/invites|_next|_vercel|.*\\..*).*)",
+    // Match all paths except static files and Next.js internals
+    // Include API routes for authentication but handle intl separately
+    "/((?!_next|_vercel|.*\\..*).*)",
   ],
 };
