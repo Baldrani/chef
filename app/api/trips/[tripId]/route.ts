@@ -88,3 +88,90 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ error: "Failed to update trip" }, { status: 500 });
     }
 }
+
+export async function DELETE(req: NextRequest) {
+    const url = new URL(req.url);
+    const match = url.pathname.match(/\/api\/trips\/([^/]+)/);
+    const tripId = match?.[1];
+    if (!tripId) return NextResponse.json({ error: "tripId missing in path" }, { status: 400 });
+
+    try {
+        // Check if trip exists
+        const existingTrip = await prisma.trip.findUnique({ where: { id: tripId } });
+        if (!existingTrip) return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+
+        // Delete trip and all related data in a transaction
+        await prisma.$transaction(async (tx) => {
+            // Delete grocery items first (they have foreign key to grocery lists)
+            await tx.groceryItem.deleteMany({
+                where: {
+                    groceryList: {
+                        tripId: tripId
+                    }
+                }
+            });
+
+            // Delete grocery lists
+            await tx.groceryList.deleteMany({
+                where: { tripId }
+            });
+
+            // Delete recipe assignments
+            await tx.recipeAssignment.deleteMany({
+                where: {
+                    mealSlot: {
+                        tripId: tripId
+                    }
+                }
+            });
+
+            // Delete assignments
+            await tx.assignment.deleteMany({
+                where: {
+                    mealSlot: {
+                        tripId: tripId
+                    }
+                }
+            });
+
+            // Delete participant availabilities
+            await tx.participantAvailability.deleteMany({
+                where: {
+                    participant: {
+                        tripId: tripId
+                    }
+                }
+            });
+
+            // Delete meal slots
+            await tx.mealSlot.deleteMany({
+                where: { tripId }
+            });
+
+            // Delete participants
+            await tx.participant.deleteMany({
+                where: { tripId }
+            });
+
+            // Delete recipes
+            await tx.recipe.deleteMany({
+                where: { tripId }
+            });
+
+            // Delete invites
+            await tx.invite.deleteMany({
+                where: { tripId }
+            });
+
+            // Finally delete the trip
+            await tx.trip.delete({
+                where: { id: tripId }
+            });
+        });
+
+        return NextResponse.json({ success: true, message: "Trip deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting trip:", error);
+        return NextResponse.json({ error: "Failed to delete trip" }, { status: 500 });
+    }
+}

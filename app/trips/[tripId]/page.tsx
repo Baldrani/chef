@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { useLocale } from "next-intl";
-import { enumerateUtcYmdInclusive, formatHumanDate, formatHumanYmd } from "@/lib/dates";
+import { enumerateUtcYmdInclusive, formatHumanDate, formatHumanYmd, formatISODate } from "@/lib/dates";
 import FancyCheckbox from "@/app/components/FancyCheckbox";
 import Loader from "@/app/components/Loader";
 import GrocerySummary, { type GrocerySummaryData } from "@/app/components/GrocerySummary";
@@ -289,7 +289,7 @@ export default function TripPage() {
     const slotsByDate = useMemo(() => {
         const map = new Map<string, MealSlot[]>();
         for (const s of slots) {
-            const key = new Date(s.date).toISOString().slice(0, 10);
+            const key = formatISODate(new Date(s.date));
             const arr = map.get(key) ?? [];
             arr.push(s);
             map.set(key, arr);
@@ -1188,6 +1188,7 @@ function MealAdder({ onAdd }: { onAdd: (date: string, meals: MealType[]) => void
 }
 
 function AvailabilityPicker({ startDate, endDate, onChange }: { startDate: string; endDate: string; onChange: (dates: string[]) => void }) {
+    const locale = useLocale();
     const [selected, setSelected] = useState<Record<string, boolean>>({});
 
     const allDates = useMemo(() => enumerateUtcYmdInclusive(startDate, endDate), [startDate, endDate]);
@@ -1210,7 +1211,7 @@ function AvailabilityPicker({ startDate, endDate, onChange }: { startDate: strin
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                 {allDates.map(d => (
                     <div key={d} className="flex items-center gap-2 border rounded px-2 py-2 bg-white/70">
-                        <FancyCheckbox label={d} checked={!!selected[d]} onChange={() => toggle(d)} />
+                        <FancyCheckbox label={formatHumanYmd(d, locale)} checked={!!selected[d]} onChange={() => toggle(d)} />
                     </div>
                 ))}
             </div>
@@ -1223,7 +1224,7 @@ function AvailabilityPicker({ startDate, endDate, onChange }: { startDate: strin
 function MealCard({ slot, outOfPeriod, onChanged }: { slot: MealSlot; outOfPeriod: boolean; onChanged: () => Promise<void> }) {
     const locale = useLocale();
     const [editing, setEditing] = useState(false);
-    const [dateYmd, setDateYmd] = useState<string>(new Date(slot.date).toISOString().slice(0, 10));
+    const [dateYmd, setDateYmd] = useState<string>(formatISODate(new Date(slot.date)));
     const [mealType, setMealType] = useState<MealType>(slot.mealType);
     const [busy, setBusy] = useState(false);
 
@@ -1353,7 +1354,7 @@ function MealCard({ slot, outOfPeriod, onChanged }: { slot: MealSlot; outOfPerio
                         className="btn btn-secondary"
                         onClick={() => {
                             setEditing(false);
-                            setDateYmd(new Date(slot.date).toISOString().slice(0, 10));
+                            setDateYmd(formatISODate(new Date(slot.date)));
                             setMealType(slot.mealType);
                         }}
                     >
@@ -1486,7 +1487,7 @@ function RecipeLibraryCard({
                                     }}
                                     className="w-3 h-3 text-amber-600"
                                 />
-                                <span>{new Date(slot.date).toLocaleDateString()} - {slot.mealType}</span>
+                                <span>{formatHumanDate(slot.date, locale)} - {slot.mealType}</span>
                             </label>
                         ))}
                         {availableSlots.length === 0 && (

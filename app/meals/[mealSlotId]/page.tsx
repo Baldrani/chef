@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { useLocale } from "next-intl";
-import { formatHumanDate } from "@/lib/dates";
+import { formatHumanDate, formatISODate } from "@/lib/dates";
 import Loader from "@/app/components/Loader";
 import GrocerySummary, { type GrocerySummaryData } from "@/app/components/GrocerySummary";
 
@@ -60,7 +60,7 @@ export default function MealPage() {
             if (!meal?.tripId || !meal?.date) return;
             
             try {
-                const dateStr = new Date(meal.date).toISOString().split('T')[0]; // Convert to YYYY-MM-DD
+                const dateStr = formatISODate(new Date(meal.date)); // Convert to YYYY-MM-DD
                 const res = await fetch(`/api/groceries?tripId=${meal.tripId}&date=${dateStr}`, { 
                     cache: "no-store" 
                 });

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { useLocale } from "next-intl";
-import { formatHumanDate } from "@/lib/dates";
+import { formatHumanDate, formatHumanYmd } from "@/lib/dates";
 import Loader from "@/app/components/Loader";
 
 type MealType = "BREAKFAST" | "LUNCH" | "DINNER";
@@ -52,7 +52,7 @@ export default function ParticipantSchedulePage() {
     const slotByDate = useMemo(() => {
         const map = new Map<string, MealSlot[]>();
         for (const s of slots) {
-            const key = new Date(s.date).toISOString().slice(0, 10);
+            const key = formatHumanYmd(s.date);
             const arr = map.get(key) ?? [];
             arr.push(s);
             map.set(key, arr);
@@ -111,7 +111,7 @@ export default function ParticipantSchedulePage() {
                 <h2 className="font-medium">Schedule</h2>
                 {[...slotByDate.entries()].map(([date, list]) => (
                     <div key={date} className="space-y-2">
-                        <div className="text-sm text-slate-600">{formatHumanDate(date, locale)}</div>
+                        <div className="text-sm text-slate-600">{date}</div>
                         <ul className="grid gap-2 sm:grid-cols-3">
                             {list.map(s => {
                                 const current = roleInSlot(s);
