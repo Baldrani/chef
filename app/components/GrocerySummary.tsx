@@ -1,7 +1,13 @@
+import { useState } from 'react';
+
 type GrocerySummaryData = {
     participantCount: number;
     meals: Array<{ mealType: string; recipes: Array<{ title: string; serves?: number | null }> }>;
     servingsMultiplier: number;
+    mealGroceries?: Array<{
+        mealType: string;
+        items: Array<{ name: string; quantity?: string; category?: string }>;
+    }>;
 };
 
 type GrocerySummaryProps = {
@@ -11,6 +17,24 @@ type GrocerySummaryProps = {
 };
 
 export default function GrocerySummary({ summary, groceries, showShoppingList = true }: GrocerySummaryProps) {
+    const [activeTab, setActiveTab] = useState<'all' | 'by-meal' | 'by-category'>('all');
+    
+    // Group groceries by category
+    const groceriesByCategory = groceries.reduce((acc, item) => {
+        const category = item.category || 'Other';
+        if (!acc[category]) acc[category] = [];
+        acc[category].push(item);
+        return acc;
+    }, {} as Record<string, Array<{ name: string; quantity?: string; category?: string }>>);
+
+    // Use meal-specific groceries if available, otherwise fall back to consolidated list
+    const mealGroceries = summary.mealGroceries && summary.mealGroceries.length > 0 
+        ? summary.mealGroceries 
+        : summary.meals.map(meal => ({
+            mealType: meal.mealType,
+            items: groceries // Fallback to showing all items for each meal
+        }));
+
     return (
         <div className="space-y-6">
             {/* Summary Information */}
@@ -78,19 +102,125 @@ export default function GrocerySummary({ summary, groceries, showShoppingList = 
                 </div>
             </div>
 
-            {/* Grocery Items List */}
+            {/* Shopping List with Tabs */}
             {showShoppingList && groceries.length > 0 && (
-                <div>
-                    <h4 className="font-semibold text-slate-800 mb-3">Shopping List</h4>
-                    <ul className="list-disc pl-6 text-slate-700">
-                        {groceries.map((i, idx) => (
-                            <li key={idx}>
-                                {i.name}
-                                {i.quantity ? ` — ${i.quantity}` : ""}
-                                {i.category ? ` (${i.category})` : ""}
-                            </li>
-                        ))}
-                    </ul>
+                <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                        <h4 className="font-semibold text-slate-800">Shopping List</h4>
+                        <div className="text-sm text-slate-500">{groceries.length} items</div>
+                    </div>
+
+                    {/* Tab Navigation */}
+                    <div className="flex gap-1 p-1 bg-slate-100 rounded-lg mb-4">
+                        <button
+                            onClick={() => setActiveTab('all')}
+                            className={`px-3 py-2 text-sm font-medium rounded-md transition-all ${
+                                activeTab === 'all'
+                                    ? 'bg-white text-slate-900 shadow-sm'
+                                    : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                        >
+                            All Items
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('by-meal')}
+                            className={`px-3 py-2 text-sm font-medium rounded-md transition-all ${
+                                activeTab === 'by-meal'
+                                    ? 'bg-white text-slate-900 shadow-sm'
+                                    : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                        >
+                            By Meal
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('by-category')}
+                            className={`px-3 py-2 text-sm font-medium rounded-md transition-all ${
+                                activeTab === 'by-category'
+                                    ? 'bg-white text-slate-900 shadow-sm'
+                                    : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                        >
+                            By Category
+                        </button>
+                    </div>
+
+                    {/* Tab Content */}
+                    <div className="space-y-4">
+                        {activeTab === 'all' && (
+                            <ul className="space-y-2">
+                                {groceries.map((item, idx) => (
+                                    <li key={idx} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-4 h-4 border border-slate-300 rounded"></div>
+                                            <span className="text-slate-700">{item.name}</span>
+                                        </div>
+                                        <div className="text-sm text-slate-500">
+                                            {item.quantity && <span className="mr-2">{item.quantity}</span>}
+                                            {item.category && <span className="bg-slate-100 px-2 py-1 rounded text-xs">{item.category}</span>}
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+
+                        {activeTab === 'by-meal' && (
+                            <div className="space-y-4">
+                                {mealGroceries.filter(meal => meal.items.length > 0).map((meal, idx) => (
+                                    <div key={idx} className="border border-slate-200 rounded-lg p-4">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <span className="text-lg">
+                                                {meal.mealType === "BREAKFAST" && "🌅"}
+                                                {meal.mealType === "LUNCH" && "☀️"}
+                                                {meal.mealType === "DINNER" && "🌙"}
+                                            </span>
+                                            <h5 className="font-medium text-slate-800">{meal.mealType}</h5>
+                                            <span className="text-sm text-slate-500">({meal.items.length} items)</span>
+                                        </div>
+                                        <ul className="space-y-2">
+                                            {meal.items.map((item, itemIdx) => (
+                                                <li key={itemIdx} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-4 h-4 border border-slate-300 rounded"></div>
+                                                        <span className="text-slate-700">{item.name}</span>
+                                                    </div>
+                                                    <div className="text-sm text-slate-500">
+                                                        {item.quantity && <span className="mr-2">{item.quantity}</span>}
+                                                        {item.category && <span className="bg-slate-100 px-2 py-1 rounded text-xs">{item.category}</span>}
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {activeTab === 'by-category' && (
+                            <div className="space-y-4">
+                                {Object.entries(groceriesByCategory).map(([category, items]) => (
+                                    <div key={category} className="border border-slate-200 rounded-lg p-4">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <h5 className="font-medium text-slate-800">{category}</h5>
+                                            <span className="text-sm text-slate-500">({items.length} items)</span>
+                                        </div>
+                                        <ul className="space-y-2">
+                                            {items.map((item, idx) => (
+                                                <li key={idx} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-4 h-4 border border-slate-300 rounded"></div>
+                                                        <span className="text-slate-700">{item.name}</span>
+                                                    </div>
+                                                    <div className="text-sm text-slate-500">
+                                                        {item.quantity && <span>{item.quantity}</span>}
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
         </div>

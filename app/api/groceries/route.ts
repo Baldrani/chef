@@ -69,7 +69,8 @@ export async function GET(req: NextRequest) {
                 serves: ra.recipe.serves
             }))
         })),
-        servingsMultiplier: groceryList.servingsMultiplier
+        servingsMultiplier: groceryList.servingsMultiplier,
+        mealGroceries: [] // Empty for GET requests since we store consolidated items
     };
 
     return NextResponse.json({
@@ -132,37 +133,69 @@ export async function POST(req: NextRequest) {
     }
 
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const userContent =
-        `Servings multiplier: ${finalServingsMultiplier}. Recipes:\n` +
-        recipes.map(r => `- ${r.title}${r.serves ? ` (serves ${r.serves})` : ""}${r.notes ? `\n  Notes: ${r.notes}` : ""}`).join("\n");
+    
+    // Generate grocery lists for each meal separately to maintain meal attribution
+    const mealGroceries: Array<{
+        mealType: string;
+        items: Array<{ name: string; quantity?: string; category?: string }>;
+    }> = [];
 
-    console.log("userContent", userContent);
+    for (const slot of slots) {
+        const mealRecipes = slot.recipes.map(ra => ra.recipe);
+        if (mealRecipes.length === 0) continue;
 
-    let chat: OpenAI.Chat.Completions.ChatCompletion;
-    try {
-        chat = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-            { role: "system", content: systemPrompts[language] },
-            { role: "user", content: userContent },
-        ],
-        temperature: 0.2,
-        response_format: { type: "json_object" },
-    });
-    } catch (error) {
-        console.error("Error generating groceries", error);
-        return NextResponse.json({ error: "Error generating groceries" }, { status: 500 });
+        const userContent =
+            `Servings multiplier: ${finalServingsMultiplier}. Recipes for ${slot.mealType}:\n` +
+            mealRecipes.map(r => `- ${r.title}${r.serves ? ` (serves ${r.serves})` : ""}${r.notes ? `\n  Notes: ${r.notes}` : ""}`).join("\n");
+
+        try {
+            const chat = await openai.chat.completions.create({
+                model: "gpt-4o-mini",
+                messages: [
+                    { role: "system", content: systemPrompts[language] },
+                    { role: "user", content: userContent },
+                ],
+                temperature: 0.2,
+                response_format: { type: "json_object" },
+            });
+
+            const message = chat.choices[0]?.message?.content;
+            let parsedJson: GroceryList = { items: [] };
+            try {
+                parsedJson = JSON.parse(message || '{"items":[]}');
+            } catch {
+                parsedJson = { items: [] };
+            }
+
+            mealGroceries.push({
+                mealType: slot.mealType,
+                items: parsedJson.items
+            });
+        } catch (error) {
+            console.error(`Error generating groceries for ${slot.mealType}`, error);
+        }
     }
 
-    const message = chat.choices[0]?.message?.content;
-    console.log(message);
+    // Consolidate all items for storage (maintaining current behavior)
+    const allItems = mealGroceries.flatMap(mg => mg.items);
+    
+    // Merge duplicate items
+    const consolidatedItems = allItems.reduce((acc, item) => {
+        const existing = acc.find(i => i.name.toLowerCase() === item.name.toLowerCase());
+        if (existing) {
+            // If quantities exist, try to merge them (simple string concatenation for now)
+            if (item.quantity && existing.quantity && item.quantity !== existing.quantity) {
+                existing.quantity = `${existing.quantity}, ${item.quantity}`;
+            } else if (item.quantity && !existing.quantity) {
+                existing.quantity = item.quantity;
+            }
+        } else {
+            acc.push({ ...item });
+        }
+        return acc;
+    }, [] as Array<{ name: string; quantity?: string; category?: string }>);
 
-    let parsedJson: GroceryList = { items: [] };
-    try {
-        parsedJson = JSON.parse(message || '{"items":[]}');
-    } catch {
-        parsedJson = { items: [] };
-    }
+    const parsedJson: GroceryList = { items: consolidatedItems };
 
     // Save or update the grocery list in the database
     const groceryList = await prisma.groceryList.upsert({
@@ -206,7 +239,8 @@ export async function POST(req: NextRequest) {
                 serves: ra.recipe.serves
             }))
         })),
-        servingsMultiplier: finalServingsMultiplier
+        servingsMultiplier: finalServingsMultiplier,
+        mealGroceries: mealGroceries // Add meal-specific groceries
     };
 
     return NextResponse.json({

@@ -47,3 +47,7 @@ export function formatHumanYmd(ymd: string, locale?: string): string {
     });
     return fmt.format(date);
 }
+
+export function formatISODate(date: Date): string {
+    return date.toISOString().split('T')[0];
+}
