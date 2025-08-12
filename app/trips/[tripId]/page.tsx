@@ -309,6 +309,13 @@ export default function TripPage() {
         }
     }
 
+    async function fetchGroceries(date: string) {
+        const res = await fetch(`/api/groceries?tripId=${tripId}&date=${date}`, { cache: "no-store" });
+        if (!res.ok) return { items: [], summary: null as GrocerySummaryData | null };
+        const data = await res.json();
+        return { items: data.items ?? [], summary: (data.summary ?? null) as GrocerySummaryData | null };
+    }
+
     const slotsByDate = useMemo(() => {
         const map = new Map<string, MealSlot[]>();
         for (const s of slots) {
@@ -1672,6 +1679,78 @@ function MealPlanningCard({
                     </div>
                 </div>
             )}
+        </div>
+    );
+}
+
+function GroceriesTab({ tripId, trip }: { tripId: string; trip: Trip | null }) {
+    const locale = useLocale();
+    const [date, setDate] = useState("");
+    const [busy, setBusy] = useState(false);
+    const [items, setItems] = useState<Array<{ name: string; quantity?: string; category?: string }>>([]);
+    const [summary, setSummary] = useState<GrocerySummaryData | null>(null);
+
+    async function load(dateStr: string) {
+        setBusy(true);
+        try {
+            const res = await fetch(`/api/groceries?tripId=${tripId}&date=${dateStr}`, { cache: "no-store" });
+            if (!res.ok) {
+                setItems([]);
+                setSummary(null);
+                return;
+            }
+            const data = await res.json();
+            setItems(data.items ?? []);
+            setSummary((data.summary ?? null) as GrocerySummaryData | null);
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    async function generate(autoCalc: boolean) {
+        if (!date) return;
+        setBusy(true);
+        try {
+            const res = await fetch(`/api/groceries`, {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ tripId, date, autoCalculateServings: autoCalc, language: locale }),
+            });
+            const data = await res.json();
+            setItems(data.items ?? []);
+            setSummary((data.summary ?? null) as GrocerySummaryData | null);
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    return (
+        <div className="space-y-4">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
+                        <ShoppingCart className="w-6 h-6 text-white" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-slate-800">Groceries</h2>
+                </div>
+            </div>
+            <div className="flex flex-wrap gap-3 items-center">
+                <input className="input" type="date" value={date} onChange={e => setDate(e.target.value)} />
+                <button className="btn btn-secondary" disabled={!date || busy} onClick={() => load(date)}>
+                    Load
+                </button>
+                <button className="btn btn-primary" disabled={!date || busy} onClick={() => generate(true)}>
+                    {busy ? (
+                        <div className="flex items-center gap-2">
+                            <Loader size="sm" />
+                            Generating...
+                        </div>
+                    ) : (
+                        "Generate (auto servings)"
+                    )}
+                </button>
+            </div>
+            {items.length > 0 && summary && <GrocerySummary summary={summary} groceries={items} />}
         </div>
     );
 }
