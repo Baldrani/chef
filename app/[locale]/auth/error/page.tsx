@@ -1,7 +1,7 @@
 "use client"
 
 import { useSearchParams } from "next/navigation"
-import Link from "next/link"
+import { Link } from "@/i18n/navigation"
 
 const errors: Record<string, string> = {
   Configuration: "There is a problem with the server configuration.",
