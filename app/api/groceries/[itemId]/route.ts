@@ -9,8 +9,11 @@ const UpdateSchema = z.object({
     category: z.string().nullable().optional(),
 });
 
-export async function PATCH(req: NextRequest, { params }: { params: { itemId: string } }) {
-    const { itemId } = params;
+export async function PATCH(req: NextRequest) {
+    const url = new URL(req.url);
+    const match = url.pathname.match(/\/api\/groceries\/([^/]+)/);
+    const itemId = match?.[1];
+    if (!itemId) return NextResponse.json({ error: "itemId required" }, { status: 400 });
     const body = await req.json();
     const parsed = UpdateSchema.safeParse(body);
     
@@ -35,8 +38,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { itemId: st
     }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { itemId: string } }) {
-    const { itemId } = params;
+export async function DELETE(req: NextRequest) {
+    const url = new URL(req.url);
+    const match = url.pathname.match(/\/api\/groceries\/([^/]+)/);
+    const itemId = match?.[1];
+    if (!itemId) return NextResponse.json({ error: "itemId required" }, { status: 400 });
 
     try {
         await prisma.groceryItem.delete({

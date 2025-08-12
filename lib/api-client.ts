@@ -11,7 +11,7 @@ type ApiRequestInit = Omit<RequestInit, 'method'> & {
  */
 export async function apiRequest(endpoint: string, options: ApiRequestInit = {}): Promise<Response> {
   // Ensure the endpoint starts with /api/
-  let apiEndpoint = endpoint.startsWith('/api/') ? endpoint : `/api/${endpoint}`;
+  const apiEndpoint = endpoint.startsWith('/api/') ? endpoint : `/api/${endpoint}`;
   
   // For client-side requests, always use absolute URL to bypass locale routing
   if (typeof window !== 'undefined') {
@@ -47,14 +47,14 @@ export const api = {
   get: (endpoint: string, options?: Omit<ApiRequestInit, 'method'>) =>
     apiRequest(endpoint, { ...options, method: 'GET' }),
   
-  post: (endpoint: string, data?: any, options?: Omit<ApiRequestInit, 'method' | 'body'>) =>
+  post: (endpoint: string, data?: unknown, options?: Omit<ApiRequestInit, 'method' | 'body'>) =>
     apiRequest(endpoint, {
       ...options,
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
     }),
   
-  put: (endpoint: string, data?: any, options?: Omit<ApiRequestInit, 'method' | 'body'>) =>
+  put: (endpoint: string, data?: unknown, options?: Omit<ApiRequestInit, 'method' | 'body'>) =>
     apiRequest(endpoint, {
       ...options,
       method: 'PUT',
@@ -64,7 +64,7 @@ export const api = {
   delete: (endpoint: string, options?: Omit<ApiRequestInit, 'method'>) =>
     apiRequest(endpoint, { ...options, method: 'DELETE' }),
   
-  patch: (endpoint: string, data?: any, options?: Omit<ApiRequestInit, 'method' | 'body'>) =>
+  patch: (endpoint: string, data?: unknown, options?: Omit<ApiRequestInit, 'method' | 'body'>) =>
     apiRequest(endpoint, {
       ...options,
       method: 'PATCH',
