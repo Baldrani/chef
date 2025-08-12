@@ -597,7 +597,7 @@ export default function TripPage() {
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="relative">
-                            <input className="input w-full pl-10" placeholder="Participant name" value={participantsName} onChange={e => setParticipantsName(e.target.value)} />
+                            <input className="input w-full pl-8!" placeholder="Participant name" value={participantsName} onChange={e => setParticipantsName(e.target.value)} />
                             <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                                 <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
