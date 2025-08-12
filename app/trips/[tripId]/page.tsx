@@ -8,7 +8,30 @@ import { enumerateUtcYmdInclusive, formatHumanDate, formatHumanYmd, formatISODat
 import FancyCheckbox from "@/app/components/FancyCheckbox";
 import Loader from "@/app/components/Loader";
 import GrocerySummary, { type GrocerySummaryData } from "@/app/components/GrocerySummary";
-import { LinkIcon, CheckIcon, UsersIcon, UtensilsIcon, BookOpenIcon, BarChart3Icon } from "lucide-react";
+import {
+    Link as LinkIcon,
+    Check as CheckIcon,
+    Users as UsersIcon,
+    Utensils as UtensilsIcon,
+    BookOpen as BookOpenIcon,
+    BarChart3 as BarChart3Icon,
+    ArrowLeft,
+    Settings,
+    Zap,
+    Download,
+    Printer,
+    User,
+    ChevronDown,
+    Heart,
+    Calendar,
+    Pencil,
+    Trash,
+    ExternalLink,
+    Plus,
+    ShoppingCart,
+    X,
+    Library,
+} from "lucide-react";
 import { toast } from "sonner";
 
 type MealType = "BREAKFAST" | "LUNCH" | "DINNER";
@@ -319,17 +342,12 @@ export default function TripPage() {
                     <div className="space-y-3">
                         <div className="flex items-center gap-3">
                             <Link href="/admin" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-purple-600 transition-colors font-medium">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                                </svg>
+                                <ArrowLeft className="w-4 h-4" />
                                 Back to Admin
                             </Link>
                             <span className="text-slate-300">|</span>
                             <Link href={`/trips/${tripId}/admin`} className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-purple-600 transition-colors font-medium">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
+                                <Settings className="w-4 h-4" />
                                 Trip Admin
                             </Link>
                         </div>
@@ -376,23 +394,14 @@ export default function TripPage() {
                                     </div>
                                 ) : (
                                     <div className="flex items-center gap-2">
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                        </svg>
+                                        <Zap className="w-5 h-5" />
                                         Generate Schedule
                                     </div>
                                 )}
                             </button>
                             <a className="btn btn-secondary" href={`/api/trips/${tripId}/schedule/ics`} target="_blank" rel="noreferrer">
                                 <div className="flex items-center gap-2">
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                        />
-                                    </svg>
+                                    <Download className="w-5 h-5" />
                                     Export ICS
                                 </div>
                             </a>
@@ -430,26 +439,12 @@ export default function TripPage() {
                     <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
-                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                                    />
-                                </svg>
+                                <BarChart3Icon className="w-6 h-6 text-white" />
                             </div>
                             <h2 className="text-2xl font-bold text-slate-800">Trip Summary</h2>
                         </div>
                         <button className="btn btn-secondary" onClick={() => typeof window !== "undefined" && window.print()}>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                                />
-                            </svg>
+                            <Printer className="w-4 h-4" />
                             Print Summary
                         </button>
                     </div>
@@ -509,50 +504,22 @@ export default function TripPage() {
                                                 </div>
                                                 <div className="space-y-2 text-xs">
                                                     <div className="flex items-center gap-2 text-slate-600">
-                                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth={2}
-                                                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                                                            />
-                                                        </svg>
+                                                        <BookOpenIcon className="w-3 h-3" />
                                                         <span>Recipes: {recipeTitles(s) || "Not assigned"}</span>
                                                     </div>
                                                     <div className="flex items-center gap-2 text-slate-600">
-                                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth={2}
-                                                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                                            />
-                                                        </svg>
+                                                        <UsersIcon className="w-3 h-3" />
                                                         <span>Cooks: {cooksFor(s) || "Not assigned"}</span>
                                                     </div>
                                                     <div className="flex items-center gap-2 text-slate-600">
-                                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth={2}
-                                                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                                                            />
-                                                        </svg>
+                                                        <UsersIcon className="w-3 h-3" />
                                                         <span>Helpers: {helpersFor(s) || "Not assigned"}</span>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100">
                                                     <div className="text-xs text-slate-400 group-hover:text-purple-500 transition-colors">Click to view details</div>
                                                     <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth={2}
-                                                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                                                            />
-                                                        </svg>
+                                                        <ExternalLink className="w-4 h-4 text-purple-500" />
                                                     </div>
                                                 </div>
                                             </li>
@@ -583,25 +550,16 @@ export default function TripPage() {
             {tab === "team" && (
                 <section className="card space-y-6">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
-                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-                                />
-                            </svg>
-                        </div>
+                            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
+                                <UsersIcon className="w-6 h-6 text-white" />
+                            </div>
                         <h2 className="text-2xl font-bold text-slate-800">Participants</h2>
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="relative">
                             <input className="input w-full pl-8!" placeholder="Participant name" value={participantsName} onChange={e => setParticipantsName(e.target.value)} />
                             <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                </svg>
+                                <User className="w-4 h-4 text-slate-400" />
                             </div>
                         </div>
                         <div className="relative">
@@ -613,9 +571,7 @@ export default function TripPage() {
                                 <option value={-2}>😤 Hates cooking</option>
                             </select>
                             <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
+                                <ChevronDown className="w-4 h-4 text-slate-400" />
                             </div>
                         </div>
                     </div>
@@ -644,26 +600,12 @@ export default function TripPage() {
                                         <div className="font-semibold text-slate-800">{p.name}</div>
                                         <div className="text-sm text-slate-600 flex items-center gap-2">
                                             <span className="flex items-center gap-1">
-                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        strokeWidth={2}
-                                                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                                                    />
-                                                </svg>
+                                                <Heart className="w-3 h-3" />
                                                 Pref: {p.cookingPreference}
                                             </span>
                                             <span>•</span>
                                             <span className="flex items-center gap-1">
-                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        strokeWidth={2}
-                                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                                    />
-                                                </svg>
+                                                <Calendar className="w-3 h-3" />
                                                 {p.availabilities.length > 0 ? `${p.availabilities.length} days available` : "No availability set"}
                                             </span>
                                         </div>
@@ -671,14 +613,7 @@ export default function TripPage() {
                                 </div>
                                 <div className="shrink-0 flex gap-2">
                                     <Link href={`/participants/${p.id}`} className="btn btn-secondary">
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                            />
-                                        </svg>
+                                        <Pencil className="w-4 h-4" />
                                         Edit
                                     </Link>
                                     <button
@@ -690,14 +625,7 @@ export default function TripPage() {
                                             await refreshSchedule();
                                         }}
                                     >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                            />
-                                        </svg>
+                                        <Trash className="w-4 h-4" />
                                         Remove
                                     </button>
                                 </div>
@@ -707,14 +635,7 @@ export default function TripPage() {
                             <li className="py-8 text-center">
                                 <div className="flex flex-col items-center gap-3">
                                     <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center">
-                                        <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-                                            />
-                                        </svg>
+                                        <UsersIcon className="w-6 h-6 text-slate-400" />
                                     </div>
                                     <div>
                                         <div className="text-sm font-medium text-slate-700">No participants yet</div>
@@ -733,14 +654,7 @@ export default function TripPage() {
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center">
-                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                                        />
-                                    </svg>
+                                    <Library className="w-6 h-6 text-white" />
                                 </div>
                                 <h2 className="text-2xl font-bold text-slate-800">Recipe Planner</h2>
                             </div>
@@ -753,9 +667,7 @@ export default function TripPage() {
                         <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-200/50 mb-6">
                             <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2">
-                                    <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                                    </svg>
+                                <Library className="w-5 h-5 text-amber-600" />
                                     <h3 className="font-semibold text-amber-800">Recipe Library</h3>
                                 </div>
                                 <span className="text-xs text-amber-600">Click any recipe to see assignment options</span>
@@ -780,9 +692,7 @@ export default function TripPage() {
                         {/* Meal Planning Grid */}
                         <div>
                             <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                                <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
+                                <Calendar className="w-5 h-5 text-slate-600" />
                                 Meal Planning
                             </h3>
                             <div className="space-y-4">
@@ -801,9 +711,7 @@ export default function TripPage() {
                                 {slots.length === 0 && (
                                     <div className="text-center py-12">
                                         <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                            </svg>
+                                            <Plus className="w-8 h-8 text-slate-400" />
                                         </div>
                                         <h4 className="text-lg font-medium text-slate-700 mb-2">No meals yet</h4>
                                         <p className="text-sm text-slate-500">Add meals in the Schedule tab to start planning recipes</p>
@@ -970,9 +878,7 @@ export default function TripPage() {
                                 className="text-slate-400 hover:text-slate-600 p-1"
                                 onClick={() => setShowEditRecipeModal(false)}
                             >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                                <X className="w-6 h-6" />
                             </button>
                         </div>
                         <div className="space-y-4">
@@ -1053,9 +959,7 @@ export default function TripPage() {
                                 className="text-slate-400 hover:text-slate-600 p-1"
                                 onClick={() => setShowRecipeModal(false)}
                             >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                                <X className="w-6 h-6" />
                             </button>
                         </div>
                         <div className="space-y-4">
@@ -1234,7 +1138,25 @@ function AvailabilityPicker({ startDate, endDate, onChange }: { startDate: strin
 
     return (
         <div className="space-y-2">
-            <div className="text-sm text-slate-600">Availability</div>
+            <div className="flex items-center justify-between">
+                <div className="text-sm text-slate-600">Availability</div>
+                <div className="flex gap-2">
+                    <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => setSelected(Object.fromEntries(allDates.map(d => [d, true]))) }
+                    >
+                        Select all days
+                    </button>
+                    <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => setSelected({})}
+                    >
+                        Clear
+                    </button>
+                </div>
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                 {allDates.map(d => (
                     <div key={d} className="flex items-center gap-2 border rounded px-2 py-2 bg-white/70">
@@ -1461,6 +1383,7 @@ function RecipeLibraryCard({
     onAssign: () => Promise<void>; 
     onEdit: () => void;
 }) {
+    const locale = useLocale();
     const [showAssign, setShowAssign] = useState(false);
     const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
     const [busy, setBusy] = useState(false);
