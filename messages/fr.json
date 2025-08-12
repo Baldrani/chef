@@ -14,7 +14,7 @@
         "f1": { "title": "Planning intelligent", "desc": "Pondéré par préférence et disponibilité pour chaque repas." },
         "f2": { "title": "Recettes & courses", "desc": "Assignez des plats et générez automatiquement une liste de courses par jour." },
         "f3": { "title": "Inviter & partager", "desc": "Liens d'invitation et export ICS du planning." },
-        "footer": "Construit avec Next.js et Prisma. © {year} Chef"
+        "footer": "Construit avec ❤️ par <name>Maël Mayon</name>. © {year} Chef"
     },
     "Admin": {
         "title": "Voyages",

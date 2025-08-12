@@ -271,6 +271,7 @@ export default function TripPage() {
                 body: JSON.stringify({ tripId, date: groceriesDate, autoCalculateServings: autoCalculate }),
             });
             const data = await res.json();
+            console.log(data);
             setGroceries(data.items ?? []);
         } finally {
             setIsGeneratingGroceries(false);

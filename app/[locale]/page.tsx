@@ -44,9 +44,12 @@ export default function Home() {
                 </section>
             </main>
 
-            <footer className="px-6 py-8 border-t bg-white/60">
+            <footer className="px-6 py-8 border-t bg-white/50 backdrop-blur-sm">
                 <div className="max-w-6xl mx-auto text-sm text-slate-600">
-                    {t("footer", { year: new Date().getFullYear(), name: '<a href="https://github.com/Baldrani">Maël Mayon</a>' })}
+                    {t.rich("footer", { 
+                        year: new Date().getFullYear(), 
+                        name: (name) => <a href="https://github.com/Baldrani" className="bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent hover:from-purple-500 hover:to-red-500 transition-all duration-300">{name}</a>
+                    })}
                 </div>
             </footer>
         </div>

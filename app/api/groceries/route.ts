@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import OpenAI from "openai";
+import { parseDateOnlyToUtcNoon } from "@/lib/dates";
 
 const Schema = z.object({
     tripId: z.string().min(1),
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) return NextResponse.json({ error: parsed.error.format() }, { status: 400 });
 
     const { tripId, date, servingsMultiplier = 1, autoCalculateServings = false } = parsed.data;
-    const day = new Date(date);
+    const day = parseDateOnlyToUtcNoon(date);
 
     const slots = await prisma.mealSlot.findMany({
         where: { tripId, date: day },
@@ -51,6 +52,8 @@ export async function POST(req: NextRequest) {
 
         const participantCount = availableParticipants.length;
 
+        console.log("participantCount", participantCount);
+
         if (participantCount > 0) {
             // Calculate average servings per recipe
             const recipesWithServings = recipes.filter(r => r.serves);
@@ -67,7 +70,11 @@ export async function POST(req: NextRequest) {
         `Servings multiplier: ${finalServingsMultiplier}. Recipes:\n` +
         recipes.map(r => `- ${r.title}${r.serves ? ` (serves ${r.serves})` : ""}${r.notes ? `\n  Notes: ${r.notes}` : ""}`).join("\n");
 
-    const chat = await openai.chat.completions.create({
+    console.log("userContent", userContent);
+
+    let chat: OpenAI.Chat.Completions.ChatCompletion;
+    try {
+        chat = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
             { role: "system", content: systemPrompt },
@@ -76,9 +83,14 @@ export async function POST(req: NextRequest) {
         temperature: 0.2,
         response_format: { type: "json_object" },
     });
+    } catch (error) {
+        console.error("Error generating groceries", error);
+        return NextResponse.json({ error: "Error generating groceries" }, { status: 500 });
+    }
 
     const message = chat.choices[0]?.message?.content;
     console.log(message);
+
     let parsedJson: GroceryList = { items: [] };
     try {
         parsedJson = JSON.parse(message || '{"items":[]}');

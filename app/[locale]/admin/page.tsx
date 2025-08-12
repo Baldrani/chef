@@ -5,6 +5,7 @@ import { useRouter } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { formatHumanDate } from "@/lib/dates";
 import Loader from "@/app/components/Loader";
+import { api } from "@/lib/api-client";
 
 type Trip = {
     id: string;
@@ -28,7 +29,7 @@ export default function AdminPage() {
         (async () => {
             setIsLoadingTrips(true);
             try {
-                const res = await fetch("/api/trips", { cache: "no-store" });
+                const res = await api.get("/api/trips", { cache: "no-store" });
                 const data = await res.json();
                 setTrips(data);
             } finally {
@@ -41,14 +42,10 @@ export default function AdminPage() {
         if (!name || !startDate || !endDate) return;
         setLoading(true);
         try {
-            const res = await fetch("/api/trips", {
-                method: "POST",
-                headers: { "content-type": "application/json" },
-                body: JSON.stringify({
-                    name,
-                    startDate: new Date(startDate).toISOString(),
-                    endDate: new Date(endDate).toISOString(),
-                }),
+            const res = await api.post("/api/trips", {
+                name,
+                startDate: new Date(startDate).toISOString(),
+                endDate: new Date(endDate).toISOString(),
             });
             const trip = await res.json();
             setTrips(tl => [trip, ...tl]);

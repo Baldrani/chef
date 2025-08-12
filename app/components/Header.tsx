@@ -2,11 +2,13 @@
 
 import { Link, usePathname } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
+import { useSession, signOut } from "next-auth/react";
 
 export default function Header() {
     const pathname = usePathname();
     const t = useTranslations("Header");
     const locale = useLocale();
+    const { data: session, status } = useSession();
 
     const base = pathname || "/";
 
@@ -23,6 +25,28 @@ export default function Header() {
                     <NavLink href="/admin" active={pathname?.startsWith(`/admin`)}>
                         {t("admin")}
                     </NavLink>
+                    
+                    {/* Authentication Section */}
+                    {status === "loading" ? (
+                        <div className="px-4 py-2 text-slate-500">Loading...</div>
+                    ) : session ? (
+                        <div className="flex items-center gap-4">
+                            <span className="text-slate-600">
+                                {session.user?.name || session.user?.email}
+                            </span>
+                            <button
+                                onClick={() => signOut({ callbackUrl: "/" })}
+                                className="px-4 py-2 rounded-full font-medium text-slate-600 hover:text-purple-600 hover:bg-white/60 hover:shadow-md hover:scale-105 transition-all duration-200"
+                            >
+                                Sign out
+                            </button>
+                        </div>
+                    ) : (
+                        <NavLink href="/auth/signin">
+                            Sign in
+                        </NavLink>
+                    )}
+                    
                     <div className="flex items-center gap-2 bg-slate-100/80 rounded-full px-3 py-1">
                         <LocaleLink code="en" active={locale === "en"} base={base} />
                         <span className="text-slate-400">|</span>
