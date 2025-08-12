@@ -58,6 +58,25 @@ export default function AdminPage() {
         }
     }
 
+    async function deleteTrip(tripId: string, tripName: string) {
+        if (!confirm(`Are you sure you want to delete "${tripName}"? This will permanently delete all participants, meals, recipes, and data for this trip. This action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            const res = await api.delete(`/api/trips/${tripId}`);
+            if (res.ok) {
+                setTrips(trips => trips.filter(t => t.id !== tripId));
+            } else {
+                const error = await res.json();
+                alert(`Failed to delete trip: ${error.error || 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error("Error deleting trip:", error);
+            alert("Failed to delete trip. Please try again.");
+        }
+    }
+
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-8">
             <div className="text-center space-y-4">
@@ -113,16 +132,30 @@ export default function AdminPage() {
                                             {formatHumanDate(trip.startDate, locale)} → {formatHumanDate(trip.endDate, locale)}
                                         </div>
                                     </div>
-                                    <button 
-                                        className="btn btn-primary w-full group-hover:scale-105 transition-transform" 
-                                    >
-                                        <div className="flex items-center gap-2 justify-center">
+                                    <div className="flex gap-2">
+                                        <button 
+                                            className="btn btn-primary flex-1 group-hover:scale-105 transition-transform"
+                                        >
+                                            <div className="flex items-center gap-2 justify-center">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                </svg>
+                                                {t("open")}
+                                            </div>
+                                        </button>
+                                        <button 
+                                            className="btn btn-secondary hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors px-3"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                deleteTrip(trip.id, trip.name);
+                                            }}
+                                            title="Delete trip"
+                                        >
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                             </svg>
-                                            {t("open")}
-                                        </div>
-                                    </button>
+                                        </button>
+                                    </div>
                                 </div>
                             </li>
                         ))}
