@@ -24,6 +24,51 @@
         "end": "End date",
         "creating": "Creating...",
         "createBtn": "Create",
-        "open": "Open"
+    "open": "Open",
+    "tagline": "Manage your cooking adventures",
+    "loadingTrips": "Loading trips...",
+    "yourTrips": "Your Trips",
+    "deleteTripTitle": "Delete trip",
+    "noTripsYet": "No trips yet",
+    "createFirstTripHint": "Create your first trip above to get started!"
+  },
+  "GrocerySummary": {
+    "title": "Grocery Summary",
+    "participants": "Participants",
+    "peopleAvailable": "people available",
+    "servingsMultiplier": "Servings Multiplier",
+    "portionAdjustment": "portion adjustment",
+    "mealsForDay": "Meals for this day:",
+    "serves": "serves {count}",
+    "noRecipesAssigned": "No recipes assigned",
+    "shoppingList": "Shopping List",
+    "itemsCount": "{count} items",
+    "tabAll": "All Items",
+    "tabByMeal": "By Meal",
+    "tabByCategory": "By Category",
+    "itemsParen": "({count} items)",
+    "categoryOther": "Other"
+  },
+  "ParticipantPage": {
+    "loading": "Loading participant data...",
+    "notFound": "Participant not found",
+    "backToTrip": "Back to trip",
+    "pref": "Pref",
+    "available": "Available",
+    "schedule": "Schedule",
+    "cook": "Cook",
+    "helper": "Helper",
+    "clear": "Clear",
+    "noMeals": "No meals yet."
+  },
+  "MealPage": {
+    "loading": "Loading meal details...",
+    "notFound": "Meal not found",
+    "backToTrip": "Back to Trip",
+    "cooks": "Cooks",
+    "helpers": "Helpers",
+    "recipes": "Recipes",
+    "notAssigned": "Not assigned",
+    "groceryListForDay": "Grocery List for this Day"
     }
 }

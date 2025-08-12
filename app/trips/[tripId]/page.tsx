@@ -78,7 +78,7 @@ export default function TripPage() {
     const [helpersPerMeal, setHelpersPerMeal] = useState<number>(0);
     const [avoidConsecutive, setAvoidConsecutive] = useState<boolean>(true);
 
-    const [tab, setTab] = useState<"plan" | "recipes" | "team">("plan");
+    const [tab, setTab] = useState<"plan" | "recipes" | "team" | "groceries">("plan");
     const [isLoading, setIsLoading] = useState(true);
     const [isGeneratingSchedule, setIsGeneratingSchedule] = useState(false);
     const [isGeneratingGroceries, setIsGeneratingGroceries] = useState(false);
@@ -417,7 +417,7 @@ export default function TripPage() {
 
             <nav className="bg-white/60 backdrop-blur-sm rounded-2xl p-2 border border-white/50 shadow-lg slide-in-up">
                 <div className="flex flex-wrap gap-2">
-                    {(["plan", "recipes", "team"] as const).map((t, index) => (
+                    {(["plan", "recipes", "team", "groceries"] as const).map((t, index) => (
                         <button
                             key={t}
                             className={`px-6 py-3 rounded-xl font-medium text-sm transition-all duration-200 ${
@@ -645,6 +645,12 @@ export default function TripPage() {
                             </li>
                         )}
                     </ul>
+                </section>
+            )}
+
+            {tab === "groceries" && (
+                <section className="card space-y-6">
+                    <GroceriesTab tripId={tripId} trip={trip} />
                 </section>
             )}
 

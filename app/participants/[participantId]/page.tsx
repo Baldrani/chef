@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { formatHumanDate, formatHumanYmd } from "@/lib/dates";
 import Loader from "@/app/components/Loader";
 
@@ -23,6 +23,7 @@ export default function ParticipantSchedulePage() {
     const params = useParams<{ participantId: string }>();
     const participantId = params?.participantId as string;
     const locale = useLocale();
+    const t = useTranslations('ParticipantPage');
 
     const [participant, setParticipant] = useState<Participant | null>(null);
     const [slots, setSlots] = useState<MealSlot[]>([]);
@@ -63,13 +64,13 @@ export default function ParticipantSchedulePage() {
     if (isLoading) {
         return (
             <div className="p-4">
-                <Loader size="lg" text="Loading participant data..." className="py-20" />
+                <Loader size="lg" text={t('loading')} className="py-20" />
             </div>
         );
     }
 
     if (!participant) {
-        return <div className="p-4 text-center text-slate-500">Participant not found</div>;
+        return <div className="p-4 text-center text-slate-500">{t('notFound')}</div>;
     }
 
     async function setAssignment(mealSlotId: string, role: "COOK" | "HELPER" | null) {
@@ -98,17 +99,17 @@ export default function ParticipantSchedulePage() {
         <div className="p-4 space-y-4">
             <div>
                 <Link href={`/trips/${participant.tripId}`} className="underline">
-                    Back to trip
+                    {t('backToTrip')}
                 </Link>
             </div>
             <div className="card space-y-2">
                 <div className="font-medium">{participant.name}</div>
                 <div className="text-sm text-slate-600">
-                    Pref: {participant.cookingPreference} • Available: {participant.availabilities.map(a => formatHumanDate(a.date, locale)).join(", ") || "-"}
+                    {t('pref')}: {participant.cookingPreference} • {t('available')}: {participant.availabilities.map(a => formatHumanDate(a.date, locale)).join(", ") || "-"}
                 </div>
             </div>
             <div className="card space-y-3">
-                <h2 className="font-medium">Schedule</h2>
+                <h2 className="font-medium">{t('schedule')}</h2>
                 {[...slotByDate.entries()].map(([date, list]) => (
                     <div key={date} className="space-y-2">
                         <div className="text-sm text-slate-600">{date}</div>
@@ -121,13 +122,13 @@ export default function ParticipantSchedulePage() {
                                             <div className="font-medium">{s.mealType}</div>
                                             <div className="flex gap-2">
                                                 <button className="btn btn-secondary" disabled={busy || current === "COOK"} onClick={() => setAssignment(s.id, "COOK")}>
-                                                    Cook
+                                                    {t('cook')}
                                                 </button>
                                                 <button className="btn btn-secondary" disabled={busy || current === "HELPER"} onClick={() => setAssignment(s.id, "HELPER")}>
-                                                    Helper
+                                                    {t('helper')}
                                                 </button>
                                                 <button className="btn btn-secondary" disabled={busy || current === null} onClick={() => setAssignment(s.id, null)}>
-                                                    Clear
+                                                    {t('clear')}
                                                 </button>
                                             </div>
                                         </div>
@@ -137,7 +138,7 @@ export default function ParticipantSchedulePage() {
                         </ul>
                     </div>
                 ))}
-                {slots.length === 0 && <div className="text-sm text-slate-500">No meals yet.</div>}
+                {slots.length === 0 && <div className="text-sm text-slate-500">{t('noMeals')}</div>}
             </div>
         </div>
     );

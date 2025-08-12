@@ -24,6 +24,51 @@
         "end": "Date de fin",
         "creating": "Création...",
         "createBtn": "Créer",
-        "open": "Ouvrir"
+    "open": "Ouvrir",
+    "tagline": "Gérez vos aventures culinaires",
+    "loadingTrips": "Chargement des voyages...",
+    "yourTrips": "Vos voyages",
+    "deleteTripTitle": "Supprimer le voyage",
+    "noTripsYet": "Aucun voyage pour l'instant",
+    "createFirstTripHint": "Créez votre premier voyage ci-dessus pour commencer !"
+  },
+  "GrocerySummary": {
+    "title": "Résumé des courses",
+    "participants": "Participants",
+    "peopleAvailable": "personnes disponibles",
+    "servingsMultiplier": "Multiplicateur de portions",
+    "portionAdjustment": "ajustement des portions",
+    "mealsForDay": "Repas pour ce jour :",
+    "serves": "{count} portions",
+    "noRecipesAssigned": "Aucune recette assignée",
+    "shoppingList": "Liste de courses",
+    "itemsCount": "{count} articles",
+    "tabAll": "Tous les articles",
+    "tabByMeal": "Par repas",
+    "tabByCategory": "Par catégorie",
+    "itemsParen": "({count} articles)",
+    "categoryOther": "Autre"
+  },
+  "ParticipantPage": {
+    "loading": "Chargement des données du participant...",
+    "notFound": "Participant introuvable",
+    "backToTrip": "Retour au voyage",
+    "pref": "Préférence",
+    "available": "Disponible",
+    "schedule": "Planning",
+    "cook": "Cuisinier",
+    "helper": "Aide",
+    "clear": "Retirer",
+    "noMeals": "Aucun repas pour l'instant."
+  },
+  "MealPage": {
+    "loading": "Chargement des détails du repas...",
+    "notFound": "Repas introuvable",
+    "backToTrip": "Retour au voyage",
+    "cooks": "Cuisiniers",
+    "helpers": "Aides",
+    "recipes": "Recettes",
+    "notAssigned": "Non assigné",
+    "groceryListForDay": "Liste de courses pour ce jour"
     }
 }

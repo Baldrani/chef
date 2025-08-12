@@ -83,7 +83,7 @@ export default function AdminPage() {
                 <h1 className="text-5xl font-bold animate-gradient h-16">
                     {t("title")}
                 </h1>
-                <p className="text-xl text-slate-600 font-medium">Manage your cooking adventures</p>
+                <p className="text-xl text-slate-600 font-medium">{t("tagline")}</p>
             </div>
 
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-white/50 shadow-xl space-y-6">
@@ -112,11 +112,11 @@ export default function AdminPage() {
 
             {isLoadingTrips ? (
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-white/50 shadow-xl">
-                    <Loader text="Loading trips..." className="py-8" />
+                    <Loader text={t("loadingTrips")} className="py-8" />
                 </div>
             ) : (
                 <div className="space-y-4">
-                    <h2 className="text-2xl font-bold text-slate-800">Your Trips</h2>
+                    <h2 className="text-2xl font-bold text-slate-800">{t("yourTrips")}</h2>
                     <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {trips.map(trip => (
                             <li key={trip.id} className="card card-interactive group" onClick={() => router.push(`/trips/${trip.id}`)}>
@@ -149,7 +149,7 @@ export default function AdminPage() {
                                                 e.stopPropagation();
                                                 deleteTrip(trip.id, trip.name);
                                             }}
-                                            title="Delete trip"
+                                            title={t("deleteTripTitle")}
                                         >
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -168,8 +168,8 @@ export default function AdminPage() {
                                         </svg>
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-semibold text-slate-700">No trips yet</h3>
-                                        <p className="text-slate-500 mt-1">Create your first trip above to get started!</p>
+                                        <h3 className="text-lg font-semibold text-slate-700">{t("noTripsYet")}</h3>
+                                        <p className="text-slate-500 mt-1">{t("createFirstTripHint")}</p>
                                     </div>
                                 </div>
                             </li>

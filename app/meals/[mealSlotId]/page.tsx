@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { formatHumanDate, formatISODate } from "@/lib/dates";
 import Loader from "@/app/components/Loader";
 import GrocerySummary, { type GrocerySummaryData } from "@/app/components/GrocerySummary";
@@ -27,6 +27,7 @@ export default function MealPage() {
     const params = useParams<{ mealSlotId: string }>();
     const mealSlotId = params?.mealSlotId as string;
     const locale = useLocale();
+    const t = useTranslations('MealPage');
 
     const [meal, setMeal] = useState<Meal | null>(null);
     const [loading, setLoading] = useState(true);
@@ -86,13 +87,13 @@ export default function MealPage() {
     if (loading) {
         return (
             <div className="p-4">
-                <Loader size="lg" text="Loading meal details..." className="py-20" />
+                <Loader size="lg" text={t('loading')} className="py-20" />
             </div>
         );
     }
     
     if (!meal) {
-        return <div className="p-4 text-center text-slate-500">Meal not found</div>;
+        return <div className="p-4 text-center text-slate-500">{t('notFound')}</div>;
     }
 
     return (
@@ -103,7 +104,7 @@ export default function MealPage() {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                         </svg>
-                        Back to Trip
+                        {t('backToTrip')}
                     </Link>
                 </div>
                 
@@ -132,10 +133,10 @@ export default function MealPage() {
                                 <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
-                                <span className="font-semibold text-blue-800">Cooks</span>
+                                <span className="font-semibold text-blue-800">{t('cooks')}</span>
                             </div>
                             <div className="text-sm text-blue-700">
-                                {cooks.length ? cooks.map(a => a.participant.name).join(", ") : "Not assigned"}
+                                {cooks.length ? cooks.map(a => a.participant.name).join(", ") : t('notAssigned')}
                             </div>
                         </div>
 
@@ -144,10 +145,10 @@ export default function MealPage() {
                                 <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                 </svg>
-                                <span className="font-semibold text-green-800">Helpers</span>
+                                <span className="font-semibold text-green-800">{t('helpers')}</span>
                             </div>
                             <div className="text-sm text-green-700">
-                                {helpers.length ? helpers.map(a => a.participant.name).join(", ") : "Not assigned"}
+                                {helpers.length ? helpers.map(a => a.participant.name).join(", ") : t('notAssigned')}
                             </div>
                         </div>
 
@@ -156,10 +157,10 @@ export default function MealPage() {
                                 <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                                 </svg>
-                                <span className="font-semibold text-purple-800">Recipes</span>
+                                <span className="font-semibold text-purple-800">{t('recipes')}</span>
                             </div>
                             <div className="text-sm text-purple-700">
-                                {(meal.recipes ?? []).length ? (meal.recipes ?? []).map(r => r.recipe.title).join(", ") : "Not assigned"}
+                                {(meal.recipes ?? []).length ? (meal.recipes ?? []).map(r => r.recipe.title).join(", ") : t('notAssigned')}
                             </div>
                         </div>
                     </div>
@@ -175,7 +176,7 @@ export default function MealPage() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17M17 13a2 2 0 100 4 2 2 0 000-4zM9 19a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
                         </div>
-                        <h2 className="text-2xl font-bold text-slate-800">Grocery List for this Day</h2>
+                        <h2 className="text-2xl font-bold text-slate-800">{t('groceryListForDay')}</h2>
                     </div>
                     <GrocerySummary summary={grocerySummary} groceries={groceries} />
                 </div>
