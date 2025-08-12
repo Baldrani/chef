@@ -1724,6 +1724,21 @@ function GroceriesTab({ tripId, trip }: { tripId: string; trip: Trip | null }) {
         }
     }
 
+    async function clearDay() {
+        if (!date) return;
+        if (!confirm("Clear all groceries and assignments for this day?")) return;
+        setBusy(true);
+        try {
+            const encoded = encodeURIComponent(date);
+            const res = await fetch(`/api/trips/${tripId}/day/${encoded}/clear`, { method: "DELETE" });
+            if (!res.ok) throw new Error("Failed to clear day");
+            setItems([]);
+            setSummary(null);
+        } finally {
+            setBusy(false);
+        }
+    }
+
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -1748,6 +1763,9 @@ function GroceriesTab({ tripId, trip }: { tripId: string; trip: Trip | null }) {
                     ) : (
                         "Generate (auto servings)"
                     )}
+                </button>
+                <button className="btn btn-secondary hover:bg-red-50 hover:border-red-200 hover:text-red-600" disabled={!date || busy} onClick={clearDay}>
+                    Clear groceries and assignees
                 </button>
             </div>
             {items.length > 0 && summary && <GrocerySummary summary={summary} groceries={items} />}
