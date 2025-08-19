@@ -55,6 +55,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Zod Validation**: Robust input validation with proper error messages
 - **Type Safety**: Full TypeScript support for all participant operations
 
+#### Database Schema Updates
+- **Added Participant.email**: Optional email field for ICS export and future user linking
+- **Added Participant.dietaryRestrictions**: Optional field for allergies and dietary requirements
+- **Migration Applied**: `20250819200341_add_participant_email_dietary_restrictions`
+- **Future-Ready**: Supports upcoming Google account integration while maintaining editing flexibility
+
 #### Documentation Structure Overhaul
 - **Organized Documentation**: Split monolithic CLAUDE.md into focused, maintainable files
 - **Separation of Concerns**: Each documentation file has a single, clear responsibility
@@ -89,6 +95,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Performance**: Optimized queries with proper joins and indexing considerations
 
 ### 🐛 Bug Fixes
+
+#### Database Schema Issues
+- **CRITICAL**: Fixed missing Participant.email field causing "Unknown argument 'email'" error
+- **CRITICAL**: Fixed missing Participant.dietaryRestrictions field in database schema
+- Fixed Prisma validation errors when updating participant profiles
+- Added proper database migration for new participant fields
 
 #### Scheduling Issues
 - Fixed equity calculation not considering participant availability windows

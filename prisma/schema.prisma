@@ -54,7 +54,9 @@ model Participant {
   userId             String?                  // Optional link to authenticated user
   user               User?                    @relation(fields: [userId], references: [id])
   name               String
+  email              String?                  // Email for ICS export, can be edited even if user linked
   cookingPreference  Int                      // -2..+2
+  dietaryRestrictions String?                // Dietary restrictions and allergies
   availabilities     ParticipantAvailability[]
   assignments        Assignment[]
   createdAt          DateTime                 @default(now())
