@@ -128,6 +128,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🎯 User Experience Improvements
 
+#### Smart Navigation & Tab Persistence  
+- **Tab-Aware Back Links**: Back navigation from participant pages now preserves the previously viewed tab
+- **URL Parameter Integration**: Trip tabs are now persisted in URL for shareable links and proper browser history
+- **SessionStorage Fallback**: Tab state maintained even when navigating without URL parameters
+- **Seamless Navigation**: Edit participant → Back button returns to the exact tab you were viewing (Team, Recipes, etc.)
+- **Browser History Support**: Proper back/forward button behavior with tab state preservation
+
 #### Workflow Optimization
 - **Faster Recipe Assignment**: Reduced from 3+ clicks to direct typing and Enter key
 - **Logical Information Architecture**: Plan tab now contains both meal creation and viewing

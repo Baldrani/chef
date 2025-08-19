@@ -51,6 +51,23 @@ export default function ParticipantSchedulePage() {
     const [editAvailabilityDates, setEditAvailabilityDates] = useState<string[]>([]);
     const [isSaving, setIsSaving] = useState(false);
 
+    // Get the back URL with preserved tab state
+    const getBackUrl = () => {
+        if (!participant?.tripId) return `/trips`;
+        
+        if (typeof window !== 'undefined') {
+            const savedTab = sessionStorage.getItem(`trip-${participant.tripId}-tab`);
+            const validTabs = ['plan', 'recipes', 'team', 'groceries'];
+            
+            if (savedTab && validTabs.includes(savedTab) && savedTab !== 'plan') {
+                // Return with tab parameter for non-default tabs
+                return `/trips/${participant.tripId}?tab=${savedTab}`;
+            }
+        }
+        
+        return `/trips/${participant.tripId}`;
+    };
+
     async function refresh() {
         if (!participantId) return;
         setIsLoading(true);
@@ -219,7 +236,7 @@ export default function ParticipantSchedulePage() {
     return (
         <div className="p-4 space-y-4">
             <div>
-                <Link href={`/trips/${participant.tripId}`} className="underline">
+                <Link href={getBackUrl()} className="underline">
                     {t('backToTrip')}
                 </Link>
             </div>

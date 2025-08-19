@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { useLocale } from "next-intl";
 import { enumerateUtcYmdInclusive, formatHumanDate, formatHumanYmd, formatISODate } from "@/lib/dates";
@@ -56,6 +56,7 @@ type ParticipantRow = {
 
 export default function TripPage() {
     const params = useParams<{ tripId: string }>();
+    const searchParams = useSearchParams();
     const tripId = params?.tripId as string;
     const locale = useLocale();
     const router = useRouter();
@@ -83,6 +84,48 @@ export default function TripPage() {
     const [tab, setTab] = useState<"plan" | "recipes" | "team" | "groceries">("plan");
     const [isLoading, setIsLoading] = useState(true);
     const [isGeneratingSchedule, setIsGeneratingSchedule] = useState(false);
+
+    // Initialize tab from URL parameter, then from sessionStorage, then default to 'plan'
+    useEffect(() => {
+        if (!tripId) return;
+        
+        const validTabs = ['plan', 'recipes', 'team', 'groceries'];
+        
+        // First check URL parameter
+        const urlTab = searchParams.get('tab');
+        if (urlTab && validTabs.includes(urlTab)) {
+            setTab(urlTab as "plan" | "recipes" | "team" | "groceries");
+            return;
+        }
+        
+        // Then check sessionStorage
+        if (typeof window !== 'undefined') {
+            const savedTab = sessionStorage.getItem(`trip-${tripId}-tab`);
+            if (savedTab && validTabs.includes(savedTab)) {
+                setTab(savedTab as "plan" | "recipes" | "team" | "groceries");
+            }
+        }
+    }, [tripId, searchParams]);
+
+    // Save tab state whenever it changes and update URL without navigation
+    useEffect(() => {
+        if (typeof window !== 'undefined' && tripId) {
+            sessionStorage.setItem(`trip-${tripId}-tab`, tab);
+            
+            // Update URL without triggering navigation
+            const currentParams = new URLSearchParams(window.location.search);
+            if (tab !== 'plan') {
+                currentParams.set('tab', tab);
+            } else {
+                currentParams.delete('tab');
+            }
+            
+            const newUrl = `${window.location.pathname}${currentParams.toString() ? '?' + currentParams.toString() : ''}`;
+            if (newUrl !== window.location.pathname + window.location.search) {
+                window.history.replaceState(null, '', newUrl);
+            }
+        }
+    }, [tab, tripId]);
     const [isGeneratingGroceries, setIsGeneratingGroceries] = useState(false);
     const [isSubmittingMeals, setIsSubmittingMeals] = useState(false);
     const [isAddingParticipant, setIsAddingParticipant] = useState(false);
@@ -652,7 +695,16 @@ export default function TripPage() {
                                     </div>
                                 </div>
                                 <div className="shrink-0 flex gap-2">
-                                    <Link href={`/participants/${p.id}`} className="btn btn-secondary">
+                                    <Link 
+                                        href={`/participants/${p.id}`} 
+                                        className="btn btn-secondary"
+                                        onClick={() => {
+                                            // Ensure current tab is stored before navigation
+                                            if (typeof window !== 'undefined') {
+                                                sessionStorage.setItem(`trip-${tripId}-tab`, tab);
+                                            }
+                                        }}
+                                    >
                                         <Pencil className="w-4 h-4" />
                                         Edit
                                     </Link>
