@@ -388,9 +388,9 @@ export default function TripPage() {
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                     <div className="space-y-3">
                         <div className="flex items-center gap-3">
-                            <Link href="/admin" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-purple-600 transition-colors font-medium">
+                            <Link href="/trips" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-purple-600 transition-colors font-medium">
                                 <ArrowLeft className="w-4 h-4" />
-                                Back to Admin
+                                Back to Trips
                             </Link>
                             <span className="text-slate-300">|</span>
                             <Link href={`/trips/${tripId}/admin`} className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-purple-600 transition-colors font-medium">

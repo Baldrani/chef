@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useLocale } from "next-intl";
+import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 import { enumerateUtcYmdInclusive, formatHumanYmd } from "@/lib/dates";
 import Loader from "@/app/components/Loader";
@@ -10,6 +11,7 @@ import Loader from "@/app/components/Loader";
 export default function JoinPage() {
     const params = useParams<{ token: string }>();
     const router = useRouter();
+    const { data: session, status } = useSession();
     const token = (params?.token as string) || "";
     const locale = useLocale();
 
@@ -20,6 +22,15 @@ export default function JoinPage() {
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isLoadingTrip, setIsLoadingTrip] = useState(true);
+
+    // Redirect authenticated users to the associate flow
+    useEffect(() => {
+        if (status === "loading") return;
+        if (session) {
+            router.push(`/associate/${token}`);
+            return;
+        }
+    }, [session, status, router, token]);
 
     useEffect(() => {
         (async () => {
@@ -71,10 +82,19 @@ export default function JoinPage() {
         }
     }
 
-    if (isLoadingTrip) {
+    if (status === "loading" || isLoadingTrip) {
         return (
             <div className="max-w-md mx-auto p-6">
                 <Loader size="lg" text="Loading invitation..." className="py-20" />
+            </div>
+        );
+    }
+
+    // Show loading while redirecting authenticated users
+    if (session) {
+        return (
+            <div className="max-w-md mx-auto p-6">
+                <Loader size="lg" text="Redirecting..." className="py-20" />
             </div>
         );
     }
@@ -110,6 +130,16 @@ export default function JoinPage() {
             <button className="bg-black text-white rounded px-4 py-2 w-full disabled:opacity-50" onClick={accept} disabled={busy || !name}>
                 {busy ? "Joining..." : "Join"}
             </button>
+
+            <div className="text-center pt-4 border-t border-gray-200">
+                <p className="text-sm text-gray-600 mb-2">Already have an account?</p>
+                <button 
+                    className="text-blue-600 text-sm underline hover:text-blue-800"
+                    onClick={() => router.push(`/auth/signin?callbackUrl=${encodeURIComponent(`/associate/${token}`)}`)}
+                >
+                    Sign in to associate with existing participant
+                </button>
+            </div>
         </div>
     );
 }

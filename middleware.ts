@@ -32,6 +32,7 @@ export default withAuth(
           "/auth/signin",
           "/auth/error",
           "/join",
+          "/associate",
           "/api/auth",
         ];
 

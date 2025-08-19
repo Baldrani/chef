@@ -1,6 +1,7 @@
 {
     "Header": {
         "admin": "Admin",
+        "trips": "Trips",
         "github": "GitHub",
         "brand": "Chef",
         "tag": "Summer"

@@ -23,8 +23,8 @@ export default function Header() {
                 </Link>
                 <nav className="flex items-center gap-6 text-sm">
                     {session && (
-                        <NavLink href="/admin" active={pathname?.startsWith(`/admin`)}>
-                            {t("admin")}
+                        <NavLink href="/trips" active={pathname?.startsWith(`/trips`)}>
+                            {t("trips")}
                         </NavLink>
                     )}
                     

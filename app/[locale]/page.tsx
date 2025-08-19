@@ -17,7 +17,7 @@ export default function Home() {
                         <h1 className="text-4xl md:text-6xl font-bold tracking-tight">{t("headline")}</h1>
                         <p className="text-lg text-slate-600 max-w-2xl mx-auto">{t("sub")}</p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                            <Link className="btn btn-primary px-5 py-3" href="/admin">
+                            <Link className="btn btn-primary px-5 py-3" href="/trips">
                                 {t("createTrip")}
                             </Link>
                             <div className="flex items-stretch gap-2">
