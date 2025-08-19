@@ -22,9 +22,11 @@ export default function Header() {
                     <span className="text-xs uppercase tracking-widest text-slate-500 font-medium group-hover:text-purple-600 transition-colors">{t("tag")}</span>
                 </Link>
                 <nav className="flex items-center gap-6 text-sm">
-                    <NavLink href="/admin" active={pathname?.startsWith(`/admin`)}>
-                        {t("admin")}
-                    </NavLink>
+                    {session && (
+                        <NavLink href="/admin" active={pathname?.startsWith(`/admin`)}>
+                            {t("admin")}
+                        </NavLink>
+                    )}
                     
                     {/* Authentication Section */}
                     {status === "loading" ? (

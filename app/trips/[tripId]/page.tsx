@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { useLocale } from "next-intl";
 import { enumerateUtcYmdInclusive, formatHumanDate, formatHumanYmd, formatISODate } from "@/lib/dates";
+import { featureFlags } from "@/lib/feature-flags";
 import FancyCheckbox from "@/app/components/FancyCheckbox";
 import Loader from "@/app/components/Loader";
 import GrocerySummary, { type GrocerySummaryData } from "@/app/components/GrocerySummary";
@@ -301,7 +302,6 @@ export default function TripPage() {
                 }),
             });
             const data = await res.json();
-            console.log(data);
             setGroceries(data.items ?? []);
             setGrocerySummary(data.summary ?? null);
         } finally {
@@ -309,12 +309,7 @@ export default function TripPage() {
         }
     }
 
-    async function fetchGroceries(date: string) {
-        const res = await fetch(`/api/groceries?tripId=${tripId}&date=${date}`, { cache: "no-store" });
-        if (!res.ok) return { items: [], summary: null as GrocerySummaryData | null };
-        const data = await res.json();
-        return { items: data.items ?? [], summary: (data.summary ?? null) as GrocerySummaryData | null };
-    }
+    // removed unused fetchGroceries
 
     const slotsByDate = useMemo(() => {
         const map = new Map<string, MealSlot[]>();
@@ -846,40 +841,6 @@ export default function TripPage() {
                     </div>
                 </section>
             )}
-
-            {/* invites tab removed; invite link moved next to title */}
-
-            <section className="card space-y-6">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17M17 13a2 2 0 100 4 2 2 0 000-4zM9 19a2 2 0 11-4 0 2 2 0 014 0z"
-                            />
-                        </svg>
-                    </div>
-                    <h2 className="text-2xl font-bold text-slate-800">Grocery List</h2>
-                </div>
-                <div className="flex gap-3">
-                    <input className="input" type="date" value={groceriesDate} onChange={e => setGroceriesDate(e.target.value)} />
-                    <button className="btn btn-primary" onClick={() => generateGroceries(true)} disabled={isGeneratingGroceries || !groceriesDate}>
-                        {isGeneratingGroceries ? (
-                            <div className="flex items-center gap-2">
-                                <Loader size="sm" />
-                                Generating...
-                            </div>
-                        ) : (
-                            "Generate for Participants"
-                        )}
-                    </button>
-                </div>
-                {groceries.length > 0 && grocerySummary && (
-                    <GrocerySummary summary={grocerySummary} groceries={groceries} />
-                )}
-            </section>
 
             {/* Recipe Edit Modal */}
             {showEditRecipeModal && (
@@ -1570,6 +1531,8 @@ function MealPlanningCard({
 }) {
     const [showQuickAdd, setShowQuickAdd] = useState(false);
     const [busy, setBusy] = useState(false);
+    const [newRecipeName, setNewRecipeName] = useState("");
+    const [isCreatingNew, setIsCreatingNew] = useState(false);
 
     const assignedRecipes = slot.recipes ?? [];
     const availableRecipes = recipes.filter(r => !assignedRecipes.some(ar => ar.recipe.id === r.id));
@@ -1608,6 +1571,37 @@ function MealPlanningCard({
             await onChanged();
         } finally {
             setBusy(false);
+        }
+    }
+
+    async function createAndAssignNewRecipe() {
+        if (!newRecipeName.trim()) return;
+        setIsCreatingNew(true);
+        try {
+            // Extract tripId from the current URL path
+            const pathSegments = window.location.pathname.split('/');
+            const tripId = pathSegments[pathSegments.indexOf('trips') + 1];
+            
+            const response = await fetch(`/api/recipes`, {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ 
+                    tripId, 
+                    title: newRecipeName.trim(),
+                    mealSlotId: slot.id
+                }),
+            });
+            
+            if (response.ok) {
+                setNewRecipeName("");
+                setShowQuickAdd(false);
+                await onChanged();
+                toast.success("Recipe created and assigned!");
+            } else {
+                toast.error("Failed to create recipe");
+            }
+        } finally {
+            setIsCreatingNew(false);
         }
     }
 
@@ -1655,28 +1649,65 @@ function MealPlanningCard({
                     {availableRecipes.length === 0 ? "All recipes assigned" : "Add Recipe"}
                 </button>
             ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                     <div className="flex items-center justify-between">
                         <div className="text-sm font-medium text-slate-700">Quick Assign</div>
                         <button 
                             className="text-slate-400 hover:text-slate-600"
-                            onClick={() => setShowQuickAdd(false)}
+                            onClick={() => {
+                                setShowQuickAdd(false);
+                                setNewRecipeName("");
+                            }}
                         >
                             ✕
                         </button>
                     </div>
-                    <div className="space-y-1 max-h-32 overflow-y-auto">
-                        {availableRecipes.map(recipe => (
+                    
+                    {/* New Recipe Creation */}
+                    <div className="space-y-2">
+                        <div className="text-xs font-medium text-slate-600 uppercase tracking-wide">Create New Recipe</div>
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                placeholder="Enter new recipe name..."
+                                value={newRecipeName}
+                                onChange={(e) => setNewRecipeName(e.target.value)}
+                                className="input flex-1 text-sm"
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && newRecipeName.trim()) {
+                                        createAndAssignNewRecipe();
+                                    }
+                                }}
+                                disabled={isCreatingNew}
+                            />
                             <button
-                                key={recipe.id}
-                                className="w-full text-left p-2 text-sm border border-slate-200 rounded hover:bg-slate-50 transition-colors"
-                                onClick={() => assignRecipe(recipe.id)}
-                                disabled={busy}
+                                className="btn btn-primary text-xs px-3 py-2"
+                                onClick={createAndAssignNewRecipe}
+                                disabled={!newRecipeName.trim() || isCreatingNew}
                             >
-                                <div className="font-medium text-slate-800">{recipe.title}</div>
+                                {isCreatingNew ? "Creating..." : "Create & Add"}
                             </button>
-                        ))}
+                        </div>
                     </div>
+
+                    {/* Existing Recipes */}
+                    {availableRecipes.length > 0 && (
+                        <div className="space-y-2">
+                            <div className="text-xs font-medium text-slate-600 uppercase tracking-wide">Or Choose Existing</div>
+                            <div className="space-y-1 max-h-32 overflow-y-auto">
+                                {availableRecipes.map(recipe => (
+                                    <button
+                                        key={recipe.id}
+                                        className="w-full text-left p-2 text-sm border border-slate-200 rounded hover:bg-slate-50 transition-colors"
+                                        onClick={() => assignRecipe(recipe.id)}
+                                        disabled={busy || isCreatingNew}
+                                    >
+                                        <div className="font-medium text-slate-800">{recipe.title}</div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
         </div>
@@ -1689,6 +1720,14 @@ function GroceriesTab({ tripId, trip }: { tripId: string; trip: Trip | null }) {
     const [busy, setBusy] = useState(false);
     const [items, setItems] = useState<Array<{ name: string; quantity?: string; category?: string }>>([]);
     const [summary, setSummary] = useState<GrocerySummaryData | null>(null);
+    const [allDays, setAllDays] = useState<Array<{ date: string; items: Array<{ name: string; quantity?: string; category?: string }>; summary: GrocerySummaryData | null }>>([]);
+
+    // Auto-load groceries when date changes (feature flag controlled)
+    useEffect(() => {
+        if (featureFlags.autoLoadGroceries && date) {
+            load(date);
+        }
+    }, [date]); // eslint-disable-line react-hooks/exhaustive-deps
 
     async function load(dateStr: string) {
         setBusy(true);
@@ -1740,7 +1779,7 @@ function GroceriesTab({ tripId, trip }: { tripId: string; trip: Trip | null }) {
     }
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
@@ -1751,9 +1790,11 @@ function GroceriesTab({ tripId, trip }: { tripId: string; trip: Trip | null }) {
             </div>
             <div className="flex flex-wrap gap-3 items-center">
                 <input className="input" type="date" value={date} onChange={e => setDate(e.target.value)} />
-                <button className="btn btn-secondary" disabled={!date || busy} onClick={() => load(date)}>
-                    Load
-                </button>
+                {!featureFlags.autoLoadGroceries && (
+                    <button className="btn btn-secondary" disabled={!date || busy} onClick={() => load(date)}>
+                        Load
+                    </button>
+                )}
                 <button className="btn btn-primary" disabled={!date || busy} onClick={() => generate(true)}>
                     {busy ? (
                         <div className="flex items-center gap-2">
@@ -1768,7 +1809,63 @@ function GroceriesTab({ tripId, trip }: { tripId: string; trip: Trip | null }) {
                     Clear groceries and assignees
                 </button>
             </div>
-            {items.length > 0 && summary && <GrocerySummary summary={summary} groceries={items} />}
+            {items.length > 0 && summary && (
+                <div>
+                    <div className="text-sm text-slate-600 mb-2">Selected day</div>
+                    <GrocerySummary summary={summary} groceries={items} />
+                </div>
+            )}
+
+            {trip && (
+                <div className="space-y-3">
+                    <div className="text-sm text-slate-600">All days</div>
+                    <AllDaysGroceries tripId={tripId} startDate={trip.startDate} endDate={trip.endDate} />
+                </div>
+            )}
+        </div>
+    );
+}
+
+function AllDaysGroceries({ tripId, startDate, endDate }: { tripId: string; startDate: string; endDate: string }) {
+    const locale = useLocale();
+    const [days, setDays] = useState<Array<{ date: string; items: Array<{ name: string; quantity?: string; category?: string }>; summary: GrocerySummaryData | null }>>([]);
+    const allDates = useMemo(() => enumerateUtcYmdInclusive(startDate, endDate), [startDate, endDate]);
+
+    useEffect(() => {
+        let cancelled = false;
+        async function loadAll() {
+            const results: Array<{ date: string; items: Array<{ name: string; quantity?: string; category?: string }>; summary: GrocerySummaryData | null }> = [];
+            for (const d of allDates) {
+                const res = await fetch(`/api/groceries?tripId=${tripId}&date=${d}`, { cache: "no-store" });
+                if (!res.ok) {
+                    results.push({ date: d, items: [], summary: null });
+                    continue;
+                }
+                const data = await res.json();
+                results.push({ date: d, items: data.items ?? [], summary: (data.summary ?? null) as GrocerySummaryData | null });
+            }
+            if (!cancelled) setDays(results);
+        }
+        if (tripId && allDates.length > 0) loadAll();
+        return () => {
+            cancelled = true;
+        };
+    }, [tripId, allDates]);
+
+    if (days.length === 0) return null;
+
+    return (
+        <div className="space-y-6">
+            {days.map(({ date, items, summary }) => (
+                <div key={date} className="border border-slate-200 rounded-xl p-3 bg-white/70">
+                    <div className="text-sm font-medium text-slate-700 mb-2">{formatHumanYmd(date, locale)}</div>
+                    {items.length > 0 && summary ? (
+                        <GrocerySummary summary={summary} groceries={items} />
+                    ) : (
+                        <div className="text-sm text-slate-500">No groceries generated for this day</div>
+                    )}
+                </div>
+            ))}
         </div>
     );
 }

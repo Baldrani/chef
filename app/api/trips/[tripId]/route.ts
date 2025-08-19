@@ -1,12 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { getServerSession } from "next-auth";
 import prisma from "@/lib/prisma";
+import { authOptions } from "@/lib/auth";
+import { userHasAccessToTrip } from "@/lib/auth-helpers";
 
 export async function GET(req: NextRequest) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const url = new URL(req.url);
     const match = url.pathname.match(/\/api\/trips\/([^/]+)/);
     const tripId = match?.[1];
     if (!tripId) return NextResponse.json({ error: "tripId missing in path" }, { status: 400 });
+
+    const hasAccess = await userHasAccessToTrip(session.user.id, tripId);
+    if (!hasAccess) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const trip = await prisma.trip.findUnique({ where: { id: tripId } });
     if (!trip) return NextResponse.json({ error: "not found" }, { status: 404 });
@@ -31,10 +44,20 @@ const UpdateTripSchema = z.object({
 );
 
 export async function PATCH(req: NextRequest) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const url = new URL(req.url);
     const match = url.pathname.match(/\/api\/trips\/([^/]+)/);
     const tripId = match?.[1];
     if (!tripId) return NextResponse.json({ error: "tripId missing in path" }, { status: 400 });
+
+    const hasAccess = await userHasAccessToTrip(session.user.id, tripId);
+    if (!hasAccess) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const body = await req.json();
     const parsed = UpdateTripSchema.safeParse(body);
@@ -90,10 +113,20 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const url = new URL(req.url);
     const match = url.pathname.match(/\/api\/trips\/([^/]+)/);
     const tripId = match?.[1];
     if (!tripId) return NextResponse.json({ error: "tripId missing in path" }, { status: 400 });
+
+    const hasAccess = await userHasAccessToTrip(session.user.id, tripId);
+    if (!hasAccess) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     try {
         // Check if trip exists

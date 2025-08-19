@@ -7,7 +7,7 @@ import { useLocale } from "next-intl";
 import { formatHumanDate, formatISODate } from "@/lib/dates";
 import Loader from "@/app/components/Loader";
 import { api } from "@/lib/api-client";
-import { ArrowLeftIcon, CheckIcon, XIcon, EditIcon, UsersIcon, UtensilsIcon } from "lucide-react";
+import { ArrowLeftIcon, CheckIcon, XIcon, EditIcon, UsersIcon, UtensilsIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 
 type MealType = "BREAKFAST" | "LUNCH" | "DINNER";
@@ -187,6 +187,28 @@ export default function TripAdminPage() {
         }
     };
 
+    const removeMeal = async (mealSlotId: string, mealType: MealType, date: string) => {
+        const mealTypeText = mealType.toLowerCase();
+        const dateText = formatHumanDate(date, locale);
+        
+        if (!confirm(`Are you sure you want to remove the ${mealTypeText} on ${dateText}? This will permanently delete all assignments and recipes for this meal.`)) {
+            return;
+        }
+
+        try {
+            const res = await api.delete(`/api/meals/${mealSlotId}`);
+            if (res.ok) {
+                toast.success("Meal removed successfully");
+                loadMealSlots(); // Reload to get updated meal slots
+            } else {
+                const errorData = await res.json();
+                toast.error(errorData.error || "Failed to remove meal");
+            }
+        } catch (error) {
+            toast.error("Failed to remove meal");
+        }
+    };
+
     const getMealTypeIcon = (mealType: MealType) => {
         switch (mealType) {
             case "BREAKFAST":
@@ -347,6 +369,13 @@ export default function TripAdminPage() {
                                             <span className="text-2xl">{getMealTypeIcon(slot.mealType)}</span>
                                             {slot.mealType} - {formatHumanDate(slot.date, locale)}
                                         </h3>
+                                        <button
+                                            onClick={() => removeMeal(slot.id, slot.mealType, slot.date)}
+                                            className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                                            title="Remove this meal"
+                                        >
+                                            <Trash2Icon className="w-5 h-5" />
+                                        </button>
                                     </div>
 
                                     {/* Current Assignments */}

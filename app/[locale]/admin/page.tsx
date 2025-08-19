@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
+import { useSession } from "next-auth/react";
 import { formatHumanDate } from "@/lib/dates";
 import Loader from "@/app/components/Loader";
 import { api } from "@/lib/api-client";
@@ -15,6 +16,7 @@ type Trip = {
 };
 
 export default function AdminPage() {
+    const { data: session, status } = useSession();
     const t = useTranslations("Admin");
     const locale = useLocale();
     const [trips, setTrips] = useState<Trip[]>([]);
@@ -25,18 +27,52 @@ export default function AdminPage() {
     const [isLoadingTrips, setIsLoadingTrips] = useState(true);
     const router = useRouter();
 
+    // Redirect if not authenticated
     useEffect(() => {
-        (async () => {
-            setIsLoadingTrips(true);
-            try {
-                const res = await api.get("/api/trips", { cache: "no-store" });
-                const data = await res.json();
-                setTrips(data);
-            } finally {
-                setIsLoadingTrips(false);
-            }
-        })();
-    }, []);
+        if (status === "unauthenticated") {
+            router.push("/auth/signin");
+        }
+    }, [status, router]);
+
+    // Load trips when authenticated
+    useEffect(() => {
+        if (session) {
+            (async () => {
+                setIsLoadingTrips(true);
+                try {
+                    const res = await api.get("/api/trips", { cache: "no-store" });
+                    if (res.ok) {
+                        const data = await res.json();
+                        setTrips(Array.isArray(data) ? data : []);
+                    } else {
+                        console.error("Failed to fetch trips:", res.status);
+                        setTrips([]);
+                    }
+                } catch (error) {
+                    console.error("Error fetching trips:", error);
+                    setTrips([]);
+                } finally {
+                    setIsLoadingTrips(false);
+                }
+            })();
+        }
+    }, [session]);
+
+    // Show loading spinner while checking authentication
+    if (status === "loading") {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader text="Loading..." />
+            </div>
+        );
+    }
+
+    // Don't render anything if not authenticated (will redirect)
+    if (!session) {
+        return null;
+    }
+
+    console.log({trips});
 
     async function createTrip() {
         if (!name || !startDate || !endDate) return;
@@ -118,7 +154,7 @@ export default function AdminPage() {
                 <div className="space-y-4">
                     <h2 className="text-2xl font-bold text-slate-800">{t("yourTrips")}</h2>
                     <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {trips.map(trip => (
+                        {Array.isArray(trips) && trips.map(trip => (
                             <li key={trip.id} className="card card-interactive group" onClick={() => router.push(`/trips/${trip.id}`)}>
                                 <div className="space-y-4">
                                     <div>
@@ -159,7 +195,7 @@ export default function AdminPage() {
                                 </div>
                             </li>
                         ))}
-                        {trips.length === 0 && (
+                        {!trips || trips.length === 0 && (
                             <li className="col-span-full bg-white/60 backdrop-blur-sm rounded-2xl p-12 border border-white/50 shadow-lg text-center">
                                 <div className="space-y-4">
                                     <div className="w-16 h-16 mx-auto bg-gradient-to-r from-purple-100 to-pink-100 rounded-full flex items-center justify-center">

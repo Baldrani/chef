@@ -23,8 +23,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
-        <html>
-            <body className={`${poppins.variable} ${pacifico.variable} antialiased bg-[#f8fafc] text-slate-900 relative`}>{children}</body>
+        <html lang="en">
+            <body className={`${poppins.variable} ${pacifico.variable} antialiased bg-gradient-to-br from-blue-50 via-white to-purple-50 text-slate-900 relative min-h-screen`}>{children}</body>
         </html>
     );
 }
