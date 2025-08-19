@@ -458,6 +458,37 @@ export default function TripPage() {
                         {trip && <Stat title="Days" value={tripDaysSet.size} />}
                     </div>
 
+                    {/* Add New Meals Section */}
+                    <div className="bg-gradient-to-r from-green-50 to-teal-50 rounded-xl p-6 border border-green-200/50">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-teal-500 rounded-lg flex items-center justify-center">
+                                <Plus className="w-5 h-5 text-white" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-slate-800">Add New Meals</h3>
+                        </div>
+                        <MealAdder onAdd={(date, meals) => addDay(date, meals)} />
+                        {days.length > 0 ? (
+                            <div className="text-sm text-slate-600 mt-3">
+                                Pending meals: {days.map(d => `${formatHumanDate(d.date, locale)} [${d.mealTypes.join(", ")}]`).join(", ")}
+                            </div>
+                        ) : (
+                            <div className="text-sm text-slate-500 mt-3">Select a date and choose meal types to add.</div>
+                        )}
+                        <button className="btn btn-primary mt-4" onClick={submitMeals} disabled={isSubmittingMeals || days.length === 0}>
+                            {isSubmittingMeals ? (
+                                <div className="flex items-center gap-2">
+                                    <Loader size="sm" />
+                                    Saving meals...
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-2">
+                                    <Plus className="w-4 h-4" />
+                                    Add {days.length} meal{days.length !== 1 ? 's' : ''}
+                                </div>
+                            )}
+                        </button>
+                    </div>
+
                     <div className="space-y-4">
                         {[...slotsByDate.entries()].map(([date, arr]) => {
                             const cooksFor = (s: MealSlot) =>
