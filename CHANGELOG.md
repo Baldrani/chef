@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🔥 Major Features
 
+#### Participant Profile Management
+- **Complete Profile Editing**: Participants can now update their information including name, email, and dietary restrictions
+- **Cooking Preference Editor**: Interactive slider to set cooking preferences from "Really dislikes" (-2) to "Loves cooking" (+2)
+- **Availability Date Management**: Visual calendar interface to select which trip days they're available
+- **Smart Date Selection**: Shows all trip dates with easy "Select All" / "Clear All" options
+- **Real-time Validation**: Form validation with proper error handling and user feedback
+- **Automatic Schedule Impact**: Changes immediately affect future schedule generation
+
 #### Smart Scheduling Algorithm v2.1 - Hybrid Approach
 - **BREAKING**: Completely rebuilt the meal assignment algorithm with sophisticated multi-factor optimization
 - **Availability-Based Equity**: Assignments now proportional to participant presence (someone there 2 days vs 10 days gets fair workload distribution)
@@ -39,6 +47,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Visual Feedback**: Clear trash icons and hover effects for deletion actions
 
 ### 🛠️ Technical Improvements
+
+#### Participant Management API Enhancement
+- **PUT /api/participants/[id]**: New endpoint for updating participant profiles
+- **Comprehensive Updates**: Support for all participant fields including availability dates
+- **Transaction Safety**: Atomic updates ensure data consistency
+- **Zod Validation**: Robust input validation with proper error messages
+- **Type Safety**: Full TypeScript support for all participant operations
 
 #### Documentation Structure Overhaul
 - **Organized Documentation**: Split monolithic CLAUDE.md into focused, maintainable files
@@ -89,6 +104,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed recipe assignment flow being too complex for quick meal planning
 - Corrected meal removal not being available from trip administration
 - Fixed inconsistent loading states and error handling across interfaces
+- **MAJOR**: Fixed missing participant profile editing - users can now update cooking preferences and availability
+- Added proper form validation and error handling for participant updates
+- Improved participant page layout with clear edit/view modes
 
 #### Data Consistency
 - Ensured proper cleanup of orphaned assignments when meals are deleted
