@@ -78,6 +78,7 @@ export default function TripPage() {
     const [cooksPerMeal, setCooksPerMeal] = useState<number>(2);
     const [helpersPerMeal, setHelpersPerMeal] = useState<number>(0);
     const [avoidConsecutive, setAvoidConsecutive] = useState<boolean>(true);
+    const [prioritizeEqualParticipation, setPriorizeEqualParticipation] = useState<boolean>(false);
 
     const [tab, setTab] = useState<"plan" | "recipes" | "team" | "groceries">("plan");
     const [isLoading, setIsLoading] = useState(true);
@@ -200,6 +201,7 @@ export default function TripPage() {
                     avoidConsecutive,
                     autoAssignRecipes,
                     recipesPerMeal,
+                    prioritizeEqualParticipation,
                 }),
             });
             await refreshSchedule();
@@ -386,6 +388,11 @@ export default function TripPage() {
                                 />
                             </div>
                             <FancyCheckbox label="Avoid consecutive" checked={avoidConsecutive} onChange={setAvoidConsecutive} />
+                            <FancyCheckbox 
+                                label="Equal participation" 
+                                checked={prioritizeEqualParticipation} 
+                                onChange={setPriorizeEqualParticipation}
+                            />
                         </div>
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                             <button className="btn btn-primary" onClick={genSchedule} disabled={isGeneratingSchedule}>

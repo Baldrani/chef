@@ -9,6 +9,7 @@ const Schema = z.object({
     avoidConsecutive: z.boolean().optional(),
     autoAssignRecipes: z.boolean().optional(),
     recipesPerMeal: z.number().int().min(1).max(5).optional(),
+    prioritizeEqualParticipation: z.boolean().optional(),
 });
 
 export async function POST(req: NextRequest) {
