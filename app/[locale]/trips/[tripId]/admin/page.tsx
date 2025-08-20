@@ -23,6 +23,11 @@ type Participant = {
     id: string;
     name: string;
     cookingPreference: number;
+    user?: {
+        id: string;
+        name: string;
+        email: string;
+    } | null;
 };
 
 type MealSlot = {
@@ -72,18 +77,19 @@ export default function TripAdminPage() {
             }
         };
 
-        const loadParticipants = async () => {
-            try {
-                const res = await api.get(`/api/participants?tripId=${tripId}`);
-                const data = await res.json();
-                setParticipants(data);
-            } catch (error) {
-                toast.error("Failed to load participants");
-            }
-        };
-
         loadTrip();
         loadParticipants();
+    }, [tripId]);
+
+    // Load participants
+    const loadParticipants = useCallback(async () => {
+        try {
+            const res = await api.get(`/api/participants?tripId=${tripId}`);
+            const data = await res.json();
+            setParticipants(data);
+        } catch (error) {
+            toast.error("Failed to load participants");
+        }
     }, [tripId]);
 
     // Load meal slots and assignments
@@ -206,6 +212,25 @@ export default function TripAdminPage() {
             }
         } catch (error) {
             toast.error("Failed to remove meal");
+        }
+    };
+
+    const disassociateParticipant = async (participantId: string, participantName: string, userName: string) => {
+        if (!confirm(`Are you sure you want to disassociate ${userName} from participant "${participantName}"? This will remove the user association but keep the participant.`)) {
+            return;
+        }
+
+        try {
+            const res = await api.post(`/api/participants/${participantId}/disassociate`);
+            if (res.ok) {
+                toast.success("User disassociated successfully");
+                loadParticipants(); // Reload participants to show updated associations
+            } else {
+                const errorData = await res.json();
+                toast.error(errorData.error || "Failed to disassociate user");
+            }
+        } catch (error) {
+            toast.error("Failed to disassociate user");
         }
     };
 
@@ -473,6 +498,79 @@ export default function TripAdminPage() {
                                         </div>
                                         {participants.filter(p => !slot.assignments.some(a => a.participant.id === p.id)).length === 0 && (
                                             <p className="text-sm text-slate-500 italic">All participants are already assigned to this meal</p>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Participant Management Section */}
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-white/50 shadow-xl space-y-6">
+                    <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                        <UsersIcon className="w-6 h-6" />
+                        Participant Management
+                    </h2>
+                    
+                    {participants.length === 0 ? (
+                        <div className="text-center py-8 text-slate-500">
+                            <UsersIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                            <p>No participants yet</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {participants.map((participant) => (
+                                <div key={participant.id} className="border border-slate-200 rounded-lg p-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <h3 className="text-lg font-semibold text-slate-800">
+                                                    {participant.name}
+                                                </h3>
+                                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                    participant.cookingPreference >= 1 
+                                                        ? 'bg-green-100 text-green-800' 
+                                                        : participant.cookingPreference === 0
+                                                        ? 'bg-yellow-100 text-yellow-800'
+                                                        : 'bg-red-100 text-red-800'
+                                                }`}>
+                                                    {participant.cookingPreference === 2 ? 'Loves cooking' :
+                                                     participant.cookingPreference === 1 ? 'Enjoys cooking' :
+                                                     participant.cookingPreference === 0 ? 'Neutral' :
+                                                     participant.cookingPreference === -1 ? 'Prefers not to cook' :
+                                                     'Hates cooking'}
+                                                </span>
+                                            </div>
+                                            {participant.user ? (
+                                                <div className="flex items-center gap-4 text-sm text-slate-600">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                                        <span>Associated with: <strong>{participant.user.name}</strong></span>
+                                                    </div>
+                                                    {participant.user.email && (
+                                                        <span className="text-slate-500">({participant.user.email})</span>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-2 text-sm text-slate-500">
+                                                    <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                                                    <span>Not associated with any user</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {participant.user && (
+                                            <button
+                                                onClick={() => disassociateParticipant(
+                                                    participant.id, 
+                                                    participant.name, 
+                                                    participant.user!.name
+                                                )}
+                                                className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors ml-4"
+                                                title="Disassociate user from this participant"
+                                            >
+                                                <XIcon className="w-5 h-5" />
+                                            </button>
                                         )}
                                     </div>
                                 </div>

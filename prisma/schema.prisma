@@ -60,6 +60,8 @@ model Participant {
   availabilities     ParticipantAvailability[]
   assignments        Assignment[]
   createdAt          DateTime                 @default(now())
+
+  @@unique([tripId, userId], name: "unique_user_per_trip")
 }
 
 model ParticipantAvailability {

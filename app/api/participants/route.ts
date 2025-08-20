@@ -32,6 +32,19 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
     const tripId = new URL(req.url).searchParams.get("tripId");
     if (!tripId) return NextResponse.json({ error: "tripId required" }, { status: 400 });
-    const participants = await prisma.participant.findMany({ where: { tripId }, include: { availabilities: true } });
+    const participants = await prisma.participant.findMany({ 
+        where: { tripId }, 
+        include: { 
+            availabilities: true,
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true
+                }
+            }
+        },
+        orderBy: { name: "asc" }
+    });
     return NextResponse.json(participants);
 }
