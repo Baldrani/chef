@@ -65,6 +65,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🛠️ Technical Improvements
 
+#### Data Fetching Architecture Migration
+- **BREAKING**: Migrated from manual fetch patterns to TanStack Query v5 for all data operations
+- **Centralized Query Management**: All API interactions now go through `/lib/queries.ts` with standardized patterns
+- **Automatic Cache Management**: Intelligent query invalidation, request deduplication, and background refetching
+- **Enhanced Developer Experience**: Built-in loading states, error handling, and optimistic updates
+- **Performance Improvements**: Reduced redundant API calls and improved user experience through smart caching
+- **Type Safety**: Full TypeScript support for all query and mutation operations
+- **Standard Hooks**: Complete set of query hooks (`useTrips`, `useParticipants`, `useMealSlots`) and mutation hooks (`useUpdateTrip`, `useAssociateParticipant`)
+- **Provider Integration**: TanStack Query client properly configured with 5-minute stale time and intelligent retry logic
+
 #### Authentication & Association API
 - **GET /api/invites/[token]/participants**: New endpoint to retrieve unassociated participants for a specific invitation
 - **POST /api/invites/[token]/associate**: Secure endpoint for associating authenticated users with existing participants  
@@ -248,6 +258,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## Migration Guide
+
+### Upgrading to TanStack Query Architecture
+
+**BREAKING CHANGE**: All data fetching has been migrated from manual fetch patterns to TanStack Query.
+
+#### Required Changes for Contributors
+1. **Import Changes**: Replace manual fetch calls with TanStack Query hooks from `/lib/queries.ts`
+2. **Component Updates**: Remove useState loading/error states in favor of built-in query states
+3. **Mutation Handling**: Use mutation hooks instead of try/catch blocks with manual error handling
+4. **Cache Management**: Leverage automatic query invalidation instead of manual refetch functions
+
+#### Migration Example
+```typescript
+// ❌ Old Pattern - Manual fetch with useState
+const [trips, setTrips] = useState([])
+const [loading, setLoading] = useState(false)
+
+useEffect(() => {
+  const loadTrips = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch('/api/trips')
+      const data = await response.json()
+      setTrips(data)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
+  }
+  loadTrips()
+}, [])
+
+// ✅ New Pattern - TanStack Query
+import { useTrips } from '@/lib/queries'
+
+const { data: trips = [], isLoading, error } = useTrips()
+```
 
 ### Upgrading to Authentication-Required Participant Management
 

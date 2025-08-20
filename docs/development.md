@@ -23,6 +23,7 @@ This document covers development commands, setup, and technical workflows for th
 
 - **Next.js 15** with App Router
 - **Prisma** with PostgreSQL (@neondatabase/serverless for production)
+- **TanStack Query v5** for data fetching and state management
 - **next-intl** for internationalization
 - **Zod** for API request validation
 - **date-fns** for date manipulation
@@ -71,6 +72,66 @@ if (featureFlags.autoLoadGroceries && date) {
 {!featureFlags.autoLoadGroceries && (
     <button onClick={() => load(date)}>Load</button>
 )}
+```
+
+## Data Fetching Standards
+
+**MANDATORY: All data fetching must use TanStack Query hooks from `/lib/queries.ts`**
+
+### Guidelines
+- **Never use manual fetch calls** - All API interactions must go through TanStack Query
+- **Use centralized query hooks** - Import from `/lib/queries.ts`, don't create ad-hoc queries
+- **Follow established patterns** - Use existing query keys and mutation patterns
+- **Leverage automatic features**:
+  - Query invalidation on mutations
+  - Loading states and error handling
+  - Request deduplication and caching
+  - Background refetching
+
+### Available Query Hooks
+- `useTrips()` - List all trips
+- `useTrip(tripId)` - Single trip details
+- `useParticipants(tripId)` - Trip participants
+- `useMealSlots(tripId)` - Trip meal schedule
+- `useInviteInfo(token)` - Invitation details
+- `useUnassociatedParticipants(token)` - Available participants for association
+
+### Available Mutation Hooks
+- `useUpdateTrip()` - Update trip details
+- `useAssociateParticipant()` - Associate user with participant
+- `useDisassociateParticipant()` - Remove user-participant association
+- `useCreateParticipant()` - Create new participant
+- `useAssignParticipantToMeal()` - Assign participant to meal
+- `useRemoveParticipantFromMeal()` - Remove meal assignment
+- `useDeleteMeal()` - Delete meal slot
+
+### Usage Example
+```typescript
+// ✅ Correct - Use TanStack Query hooks
+import { useTrip, useUpdateTrip } from '@/lib/queries'
+
+function TripEditor({ tripId }: { tripId: string }) {
+  const { data: trip, isLoading, error } = useTrip(tripId)
+  const updateTripMutation = useUpdateTrip()
+  
+  const handleSave = () => {
+    updateTripMutation.mutate({
+      tripId,
+      data: { name: 'New Name' }
+    })
+  }
+  
+  if (isLoading) return <Loader />
+  if (error) return <div>Error: {error.message}</div>
+  
+  return <button onClick={handleSave}>Save</button>
+}
+
+// ❌ Wrong - Never use manual fetch
+async function badExample() {
+  const response = await fetch('/api/trips/123')
+  const trip = await response.json()
+}
 ```
 
 ## Testing and Quality

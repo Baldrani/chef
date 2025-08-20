@@ -3,10 +3,16 @@
 import { useParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "next-auth/react";
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useLocale } from "next-intl";
 import { enumerateUtcYmdInclusive, formatHumanYmd } from "@/lib/dates";
 import Loader from "@/app/components/Loader";
+import { 
+  useInviteInfo, 
+  useUnassociatedParticipants, 
+  useAssociateParticipant,
+  useCreateParticipant 
+} from "@/lib/queries";
 
 interface Participant {
     id: string;
@@ -29,12 +35,14 @@ export default function AssociatePage() {
     const locale = useLocale();
     const token = (params?.token as string) || "";
 
-    const [trip, setTrip] = useState<Trip | null>(null);
-    const [participants, setParticipants] = useState<Participant[]>([]);
+    // TanStack Query hooks
+    const { data: inviteInfo, isLoading: isInviteLoading, error: inviteError } = useInviteInfo(token);
+    const { data: participantsData, isLoading: isParticipantsLoading } = useUnassociatedParticipants(token);
+    const associateParticipantMutation = useAssociateParticipant();
+    const createParticipantMutation = useCreateParticipant();
+
+    // UI state
     const [selectedParticipantId, setSelectedParticipantId] = useState<string>("");
-    const [busy, setBusy] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
 
     // New participant modal state
     const [showNewParticipantModal, setShowNewParticipantModal] = useState(false);
@@ -42,7 +50,6 @@ export default function AssociatePage() {
     const [newParticipantEmail, setNewParticipantEmail] = useState("");
     const [newParticipantPref, setNewParticipantPref] = useState(0);
     const [newParticipantDates, setNewParticipantDates] = useState<Record<string, boolean>>({});
-    const [creatingParticipant, setCreatingParticipant] = useState(false);
 
     // Redirect to sign-in if not authenticated
     useEffect(() => {
@@ -53,39 +60,12 @@ export default function AssociatePage() {
         }
     }, [session, status, router, token]);
 
+    // Auto-open modal if no participants available
     useEffect(() => {
-        if (!token || !session) return;
-
-        (async () => {
-            try {
-                // Get invite info and unassociated participants
-                const [inviteRes, participantsRes] = await Promise.all([
-                    fetch(`/api/invites/${token}`, { cache: "no-store" }),
-                    fetch(`/api/invites/${token}/participants`, { cache: "no-store" })
-                ]);
-
-                if (!inviteRes.ok || !participantsRes.ok) {
-                    setError("Invalid or expired invitation");
-                    return;
-                }
-
-                const inviteData = await inviteRes.json();
-                const participantsData = await participantsRes.json();
-
-                setTrip(inviteData.trip);
-                setParticipants(participantsData.participants);
-
-                // If no unassociated participants, show option to create new participant
-                if (participantsData.participants.length === 0) {
-                    setShowNewParticipantModal(true);
-                }
-            } catch (err) {
-                setError("Failed to load invitation");
-            } finally {
-                setIsLoading(false);
-            }
-        })();
-    }, [token, session]);
+        if (participantsData && participantsData.participants.length === 0) {
+            setShowNewParticipantModal(true);
+        }
+    }, [participantsData]);
 
     const cookingPreferenceText = (pref: number) => {
         switch (pref) {
@@ -98,86 +78,59 @@ export default function AssociatePage() {
         }
     };
 
-    async function associate() {
+    const associate = () => {
         if (!selectedParticipantId) return;
 
-        setBusy(true);
-        setError(null);
-        try {
-            const res = await fetch(`/api/invites/${token}/associate`, {
-                method: "POST",
-                headers: { "content-type": "application/json" },
-                body: JSON.stringify({ participantId: selectedParticipantId }),
-            });
-
-            if (!res.ok) {
-                const j = await res.json().catch(() => ({}));
-                setError(j.error || "Failed to associate");
-                return;
+        associateParticipantMutation.mutate(
+            { token, participantId: selectedParticipantId },
+            {
+                onSuccess: (result) => {
+                    router.push(`/trips/${result.tripId}`);
+                }
             }
-
-            const result = await res.json();
-            router.push(`/trips/${result.tripId}`);
-        } finally {
-            setBusy(false);
-        }
-    }
+        );
+    };
 
     const allDates: string[] = useMemo(() => {
-        if (!trip) return [];
-        return enumerateUtcYmdInclusive(trip.startDate, trip.endDate);
-    }, [trip]);
+        if (!inviteInfo?.trip) return [];
+        return enumerateUtcYmdInclusive(inviteInfo.trip.startDate, inviteInfo.trip.endDate);
+    }, [inviteInfo]);
 
     const toggleNewParticipantDate = (date: string) => {
         setNewParticipantDates(prev => ({ ...prev, [date]: !prev[date] }));
     };
 
-    const createNewParticipant = async () => {
+    const createNewParticipant = () => {
         if (!newParticipantName.trim()) return;
 
-        setCreatingParticipant(true);
-        setError(null);
-        try {
-            const availability = Object.entries(newParticipantDates)
-                .filter(([, v]) => v)
-                .map(([k]) => k);
-            
-            const res = await fetch(`/api/invites/${token}/accept`, {
-                method: "POST",
-                headers: { "content-type": "application/json" },
-                body: JSON.stringify({ 
+        const availability = Object.entries(newParticipantDates)
+            .filter(([, v]) => v)
+            .map(([k]) => k);
+
+        createParticipantMutation.mutate(
+            {
+                token,
+                data: {
                     name: newParticipantName.trim(),
                     email: newParticipantEmail.trim() || undefined,
-                    cookingPreference: newParticipantPref, 
-                    availability 
-                }),
-            });
-
-            if (!res.ok) {
-                const j = await res.json().catch(() => ({}));
-                setError(j.error || "Failed to create participant");
-                return;
+                    cookingPreference: newParticipantPref,
+                    availability
+                }
+            },
+            {
+                onSuccess: (participant) => {
+                    // Auto-associate the newly created participant
+                    associateParticipantMutation.mutate(
+                        { token, participantId: participant.id },
+                        {
+                            onSuccess: () => {
+                                router.push(`/trips/${participant.tripId}`);
+                            }
+                        }
+                    );
+                }
             }
-
-            const participant = await res.json();
-            
-            // Now associate the newly created participant with the user
-            const associateRes = await fetch(`/api/invites/${token}/associate`, {
-                method: "POST",
-                headers: { "content-type": "application/json" },
-                body: JSON.stringify({ participantId: participant.id }),
-            });
-
-            if (!associateRes.ok) {
-                const j = await associateRes.json().catch(() => ({}));
-                setError(j.error || "Failed to associate with new participant");
-                return;
-            }
-
-            router.push(`/trips/${participant.tripId}`);
-        } finally {
-            setCreatingParticipant(false);
-        }
+        );
     };
 
     if (status === "loading" || !session) {
@@ -188,7 +141,7 @@ export default function AssociatePage() {
         );
     }
 
-    if (isLoading) {
+    if (isInviteLoading || isParticipantsLoading) {
         return (
             <div className="max-w-md mx-auto p-6">
                 <Loader size="lg" text="Loading invitation..." className="py-20" />
@@ -196,10 +149,10 @@ export default function AssociatePage() {
         );
     }
 
-    if (error) {
+    if (inviteError) {
         return (
             <div className="max-w-md mx-auto p-6">
-                <div className="text-red-600 text-sm mb-4">{error}</div>
+                <div className="text-red-600 text-sm mb-4">Invalid or expired invitation</div>
                 <button 
                     className="bg-black text-white rounded px-4 py-2"
                     onClick={() => router.push("/trips")}
@@ -213,14 +166,14 @@ export default function AssociatePage() {
     return (
         <div className="max-w-md mx-auto p-6 space-y-4">
             <div>
-                <h1 className="text-xl font-semibold">Join {trip?.name}</h1>
+                <h1 className="text-xl font-semibold">Join {inviteInfo?.trip?.name}</h1>
                 <p className="text-gray-600 text-sm mt-1">
                     Hello {session.user?.name}! Please select which participant you are:
                 </p>
             </div>
 
             <div className="space-y-3">
-                {participants.map((participant) => (
+                {participantsData?.participants.map((participant) => (
                     <label 
                         key={participant.id} 
                         className={`block border rounded-lg p-4 cursor-pointer transition-colors ${
@@ -253,9 +206,9 @@ export default function AssociatePage() {
             <button 
                 className="bg-black text-white rounded px-4 py-2 w-full disabled:opacity-50" 
                 onClick={associate} 
-                disabled={busy || !selectedParticipantId}
+                disabled={associateParticipantMutation.isPending || !selectedParticipantId}
             >
-                {busy ? "Associating..." : "Continue to Trip"}
+                {associateParticipantMutation.isPending ? "Associating..." : "Continue to Trip"}
             </button>
 
             <div className="text-center">
@@ -336,22 +289,26 @@ export default function AssociatePage() {
                                 </div>
                             )}
 
-                            {error && <div className="text-red-600 text-sm">{error}</div>}
+                            {createParticipantMutation.error && (
+                                <div className="text-red-600 text-sm">
+                                    {createParticipantMutation.error.message}
+                                </div>
+                            )}
 
                             <div className="flex gap-3 pt-4">
                                 <button 
                                     className="flex-1 bg-gray-200 text-gray-800 rounded px-4 py-2 hover:bg-gray-300"
                                     onClick={() => setShowNewParticipantModal(false)}
-                                    disabled={creatingParticipant}
+                                    disabled={createParticipantMutation.isPending}
                                 >
                                     Cancel
                                 </button>
                                 <button 
                                     className="flex-1 bg-black text-white rounded px-4 py-2 disabled:opacity-50"
                                     onClick={createNewParticipant}
-                                    disabled={creatingParticipant || !newParticipantName.trim()}
+                                    disabled={createParticipantMutation.isPending || !newParticipantName.trim()}
                                 >
-                                    {creatingParticipant ? "Creating..." : "Create & Join"}
+                                    {createParticipantMutation.isPending ? "Creating..." : "Create & Join"}
                                 </button>
                             </div>
                         </div>

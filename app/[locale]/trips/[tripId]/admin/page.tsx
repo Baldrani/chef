@@ -1,116 +1,61 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { useLocale } from "next-intl";
 import { formatHumanDate, formatISODate } from "@/lib/dates";
 import Loader from "@/app/components/Loader";
-import { api } from "@/lib/api-client";
+import { 
+  useTrip, 
+  useParticipants, 
+  useMealSlots, 
+  useUpdateTrip,
+  useDisassociateParticipant,
+  useAssignParticipantToMeal,
+  useRemoveParticipantFromMeal,
+  useDeleteMeal
+} from "@/lib/queries";
 import { ArrowLeftIcon, CheckIcon, XIcon, EditIcon, UsersIcon, UtensilsIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 
 type MealType = "BREAKFAST" | "LUNCH" | "DINNER";
-
-type Trip = {
-    id: string;
-    name: string;
-    startDate: string;
-    endDate: string;
-};
-
-type Participant = {
-    id: string;
-    name: string;
-    cookingPreference: number;
-    user?: {
-        id: string;
-        name: string;
-        email: string;
-    } | null;
-};
-
-type MealSlot = {
-    id: string;
-    date: string;
-    mealType: MealType;
-    assignments: Array<{
-        participant: Participant;
-        role: "COOK" | "HELPER";
-    }>;
-};
 
 export default function TripAdminPage() {
     const params = useParams<{ tripId: string }>();
     const tripId = params?.tripId as string;
     const locale = useLocale();
 
-    // Trip basic info state
-    const [trip, setTrip] = useState<Trip | null>(null);
+    // UI state (only what's actually UI-related)
     const [isEditingTrip, setIsEditingTrip] = useState(false);
     const [editForm, setEditForm] = useState({
         name: "",
         startDate: "",
         endDate: ""
     });
-    const [isSavingTrip, setIsSavingTrip] = useState(false);
 
-    // Meal assignments state
-    const [participants, setParticipants] = useState<Participant[]>([]);
-    const [mealSlots, setMealSlots] = useState<MealSlot[]>([]);
-    const [isLoadingMeals, setIsLoadingMeals] = useState(true);
+    // TanStack Query hooks - replace all manual data fetching
+    const { data: trip, isLoading: isTripLoading, error: tripError } = useTrip(tripId);
+    const { data: participants = [], isLoading: isParticipantsLoading } = useParticipants(tripId);
+    const { data: mealSlots = [], isLoading: isMealSlotsLoading } = useMealSlots(tripId);
+    
+    // Mutation hooks - replace all manual mutation handling
+    const updateTripMutation = useUpdateTrip();
+    const disassociateParticipantMutation = useDisassociateParticipant();
+    const assignParticipantMutation = useAssignParticipantToMeal();
+    const removeParticipantMutation = useRemoveParticipantFromMeal();
+    const deleteMealMutation = useDeleteMeal();
 
-    // Load trip data
+    // Initialize edit form when trip data loads
     useEffect(() => {
-        const loadTrip = async () => {
-            try {
-                const res = await api.get(`/api/trips/${tripId}`);
-                const tripData = await res.json();
-                setTrip(tripData);
-                setEditForm({
-                    name: tripData.name,
-                    startDate: formatISODate(new Date(tripData.startDate)),
-                    endDate: formatISODate(new Date(tripData.endDate))
-                });
-            } catch (error) {
-                toast.error("Failed to load trip details");
-            }
-        };
-
-        loadTrip();
-        loadParticipants();
-    }, [tripId]);
-
-    // Load participants
-    const loadParticipants = useCallback(async () => {
-        try {
-            const res = await api.get(`/api/participants?tripId=${tripId}`);
-            const data = await res.json();
-            setParticipants(data);
-        } catch (error) {
-            toast.error("Failed to load participants");
+        if (trip) {
+            setEditForm({
+                name: trip.name,
+                startDate: formatISODate(new Date(trip.startDate)),
+                endDate: formatISODate(new Date(trip.endDate))
+            });
         }
-    }, [tripId]);
-
-    // Load meal slots and assignments
-    const loadMealSlots = useCallback(async () => {
-        if (!trip) return;
-        
-        setIsLoadingMeals(true);
-        try {
-            const res = await api.get(`/api/trips/${tripId}/schedule`);
-            const data = await res.json();
-            setMealSlots(data);
-        } catch (error) {
-            toast.error("Failed to load meal assignments");
-        } finally {
-            setIsLoadingMeals(false);
-        }
-    }, [tripId, trip]);
-
-    useEffect(() => {
-        loadMealSlots();
-    }, [loadMealSlots]);
+    }, [trip]);
 
     // Trip editing functions
     const startEditingTrip = () => {
@@ -138,62 +83,30 @@ export default function TripAdminPage() {
             return;
         }
 
-        setIsSavingTrip(true);
-        try {
-            const res = await api.patch(`/api/trips/${tripId}`, {
+        updateTripMutation.mutate({
+            tripId,
+            data: {
                 name: editForm.name.trim(),
                 startDate: new Date(editForm.startDate).toISOString(),
                 endDate: new Date(editForm.endDate).toISOString()
-            });
-
-            if (res.ok) {
-                const updatedTrip = await res.json();
-                setTrip(updatedTrip);
+            }
+        }, {
+            onSuccess: () => {
                 setIsEditingTrip(false);
-                toast.success("Trip updated successfully");
-                // Reload meals in case date changes affected them
-                loadMealSlots();
-            } else {
-                const errorData = await res.json();
-                toast.error(errorData.error || "Failed to update trip");
             }
-        } catch (error) {
-            toast.error("Failed to update trip");
-        } finally {
-            setIsSavingTrip(false);
-        }
+        });
     };
 
-    // Meal assignment functions
-    const assignParticipant = async (mealSlotId: string, participantId: string, role: "COOK" | "HELPER") => {
-        try {
-            const res = await api.put(`/api/meals/${mealSlotId}/participants/${participantId}`, { role });
-            if (res.ok) {
-                toast.success(`Participant assigned as ${role.toLowerCase()}`);
-                loadMealSlots(); // Reload to get updated assignments
-            } else {
-                toast.error("Failed to assign participant");
-            }
-        } catch (error) {
-            toast.error("Failed to assign participant");
-        }
+    // Mutation functions - now using TanStack Query
+    const assignParticipant = (mealSlotId: string, participantId: string, role: "COOK" | "HELPER") => {
+        assignParticipantMutation.mutate({ mealSlotId, participantId, role });
     };
 
-    const removeAssignment = async (mealSlotId: string, participantId: string) => {
-        try {
-            const res = await api.delete(`/api/meals/${mealSlotId}/participants/${participantId}`);
-            if (res.ok) {
-                toast.success("Assignment removed");
-                loadMealSlots(); // Reload to get updated assignments
-            } else {
-                toast.error("Failed to remove assignment");
-            }
-        } catch (error) {
-            toast.error("Failed to remove assignment");
-        }
+    const removeAssignment = (mealSlotId: string, participantId: string) => {
+        removeParticipantMutation.mutate({ mealSlotId, participantId });
     };
 
-    const removeMeal = async (mealSlotId: string, mealType: MealType, date: string) => {
+    const removeMeal = (mealSlotId: string, mealType: MealType, date: string) => {
         const mealTypeText = mealType.toLowerCase();
         const dateText = formatHumanDate(date, locale);
         
@@ -201,37 +114,15 @@ export default function TripAdminPage() {
             return;
         }
 
-        try {
-            const res = await api.delete(`/api/meals/${mealSlotId}`);
-            if (res.ok) {
-                toast.success("Meal removed successfully");
-                loadMealSlots(); // Reload to get updated meal slots
-            } else {
-                const errorData = await res.json();
-                toast.error(errorData.error || "Failed to remove meal");
-            }
-        } catch (error) {
-            toast.error("Failed to remove meal");
-        }
+        deleteMealMutation.mutate(mealSlotId);
     };
 
-    const disassociateParticipant = async (participantId: string, participantName: string, userName: string) => {
+    const disassociateParticipant = (participantId: string, participantName: string, userName: string) => {
         if (!confirm(`Are you sure you want to disassociate ${userName} from participant "${participantName}"? This will remove the user association but keep the participant.`)) {
             return;
         }
 
-        try {
-            const res = await api.post(`/api/participants/${participantId}/disassociate`);
-            if (res.ok) {
-                toast.success("User disassociated successfully");
-                loadParticipants(); // Reload participants to show updated associations
-            } else {
-                const errorData = await res.json();
-                toast.error(errorData.error || "Failed to disassociate user");
-            }
-        } catch (error) {
-            toast.error("Failed to disassociate user");
-        }
+        disassociateParticipantMutation.mutate(participantId);
     };
 
     const getMealTypeIcon = (mealType: MealType) => {
@@ -245,10 +136,36 @@ export default function TripAdminPage() {
         }
     };
 
-    if (!trip) {
+    if (isTripLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <Loader text="Loading trip..." />
+            </div>
+        );
+    }
+
+    if (tripError) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-red-600 mb-4">Failed to load trip</p>
+                    <Link href="/trips" className="btn btn-primary">
+                        Back to Trips
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
+    if (!trip) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-gray-600 mb-4">Trip not found</p>
+                    <Link href="/trips" className="btn btn-primary">
+                        Back to Trips
+                    </Link>
+                </div>
             </div>
         );
     }
@@ -323,10 +240,10 @@ export default function TripAdminPage() {
                             <div className="flex gap-4">
                                 <button
                                     onClick={saveTrip}
-                                    disabled={isSavingTrip || !editForm.name.trim()}
+                                    disabled={updateTripMutation.isPending || !editForm.name.trim()}
                                     className="btn btn-primary"
                                 >
-                                    {isSavingTrip ? (
+                                    {updateTripMutation.isPending ? (
                                         <>
                                             <Loader size="sm" />
                                             Saving...
@@ -340,7 +257,7 @@ export default function TripAdminPage() {
                                 </button>
                                 <button
                                     onClick={cancelEditingTrip}
-                                    disabled={isSavingTrip}
+                                    disabled={updateTripMutation.isPending}
                                     className="btn btn-secondary"
                                 >
                                     <XIcon className="w-4 h-4" />
@@ -376,7 +293,7 @@ export default function TripAdminPage() {
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-white/50 shadow-xl space-y-6">
                     <h2 className="text-2xl font-bold text-slate-800">Meal Assignments</h2>
                     
-                    {isLoadingMeals ? (
+                    {isMealSlotsLoading ? (
                         <div className="py-8">
                             <Loader text="Loading meal assignments..." />
                         </div>
