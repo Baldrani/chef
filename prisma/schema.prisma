@@ -26,7 +26,7 @@ model Trip {
   startDate    DateTime
   endDate      DateTime
   createdBy    String?       // User who created the trip
-  creator      User?         @relation(fields: [createdBy], references: [id])
+  creator      User?         @relation(fields: [createdBy], references: [id], onDelete: SetNull)
   mealSlots    MealSlot[]
   participants Participant[]
   recipes      Recipe[]
@@ -38,7 +38,7 @@ model Trip {
 model MealSlot {
   id          String        @id @default(cuid())
   tripId      String
-  trip        Trip          @relation(fields: [tripId], references: [id])
+  trip        Trip          @relation(fields: [tripId], references: [id], onDelete: Cascade)
   date        DateTime
   mealType    MealType
   assignments Assignment[]
@@ -50,9 +50,9 @@ model MealSlot {
 model Participant {
   id                 String                   @id @default(cuid())
   tripId             String
-  trip               Trip                     @relation(fields: [tripId], references: [id])
+  trip               Trip                     @relation(fields: [tripId], references: [id], onDelete: Cascade)
   userId             String?                  // Optional link to authenticated user
-  user               User?                    @relation(fields: [userId], references: [id])
+  user               User?                    @relation(fields: [userId], references: [id], onDelete: SetNull)
   name               String
   email              String?                  // Email for ICS export, can be edited even if user linked
   cookingPreference  Int                      // -2..+2
@@ -67,7 +67,7 @@ model Participant {
 model ParticipantAvailability {
   id            String       @id @default(cuid())
   participantId String
-  participant   Participant  @relation(fields: [participantId], references: [id])
+  participant   Participant  @relation(fields: [participantId], references: [id], onDelete: Cascade)
   date          DateTime
 
   @@unique([participantId, date])
@@ -76,9 +76,9 @@ model ParticipantAvailability {
 model Assignment {
   id            String       @id @default(cuid())
   mealSlotId    String
-  mealSlot      MealSlot     @relation(fields: [mealSlotId], references: [id])
+  mealSlot      MealSlot     @relation(fields: [mealSlotId], references: [id], onDelete: Cascade)
   participantId String
-  participant   Participant  @relation(fields: [participantId], references: [id])
+  participant   Participant  @relation(fields: [participantId], references: [id], onDelete: Cascade)
   role          AssignmentRole @default(COOK)
   createdAt     DateTime     @default(now())
 
@@ -88,7 +88,7 @@ model Assignment {
 model Recipe {
   id         String    @id @default(cuid())
   tripId     String
-  trip       Trip      @relation(fields: [tripId], references: [id])
+  trip       Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
   title      String
   notes      String?
   serves     Int?
@@ -99,9 +99,9 @@ model Recipe {
 model RecipeAssignment {
   id         String   @id @default(cuid())
   mealSlotId String
-  mealSlot   MealSlot @relation(fields: [mealSlotId], references: [id])
+  mealSlot   MealSlot @relation(fields: [mealSlotId], references: [id], onDelete: Cascade)
   recipeId   String
-  recipe     Recipe   @relation(fields: [recipeId], references: [id])
+  recipe     Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
 
   @@unique([mealSlotId, recipeId])
 }
@@ -109,7 +109,7 @@ model RecipeAssignment {
 model GroceryList {
   id                   String        @id @default(cuid())
   tripId               String
-  trip                 Trip          @relation(fields: [tripId], references: [id])
+  trip                 Trip          @relation(fields: [tripId], references: [id], onDelete: Cascade)
   date                 DateTime
   servingsMultiplier   Float         @default(1.0)
   autoCalculateServings Boolean      @default(false)
@@ -134,7 +134,7 @@ model GroceryItem {
 model Invite {
   id             String   @id @default(cuid())
   tripId         String
-  trip           Trip     @relation(fields: [tripId], references: [id])
+  trip           Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
   token          String   @unique
   expiresAt      DateTime?
   usesRemaining  Int?
