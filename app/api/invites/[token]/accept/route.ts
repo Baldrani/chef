@@ -5,6 +5,7 @@ import { parseDateOnlyToUtcNoon } from "@/lib/dates";
 
 const Body = z.object({
     name: z.string().min(1),
+    email: z.string().email().optional(),
     cookingPreference: z.number().int().min(-2).max(2).default(0),
     availability: z.array(z.string().date()).default([]),
 });
@@ -26,13 +27,14 @@ export async function POST(req: NextRequest) {
     const parsed = Body.safeParse(body);
     if (!parsed.success) return NextResponse.json({ error: parsed.error.format() }, { status: 400 });
 
-    const { name, cookingPreference, availability } = parsed.data;
+    const { name, email, cookingPreference, availability } = parsed.data;
 
     const result = await prisma.$transaction(async tx => {
         const participant = await tx.participant.create({
             data: {
                 tripId: invite.tripId,
                 name,
+                email: email || null,
                 cookingPreference,
                 availabilities: { create: availability.map(d => ({ date: parseDateOnlyToUtcNoon(d) })) },
             },
