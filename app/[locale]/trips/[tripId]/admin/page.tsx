@@ -16,7 +16,7 @@ import {
   useRemoveParticipantFromMeal,
   useDeleteMeal
 } from "@/lib/queries";
-import { ArrowLeftIcon, CheckIcon, XIcon, EditIcon, UsersIcon, UtensilsIcon, Trash2Icon } from "lucide-react";
+import { ArrowLeftIcon, CheckIcon, XIcon, EditIcon, UsersIcon, UtensilsIcon, Trash2Icon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { toast } from "sonner";
 
 type MealType = "BREAKFAST" | "LUNCH" | "DINNER";
@@ -33,6 +33,7 @@ export default function TripAdminPage() {
         startDate: "",
         endDate: ""
     });
+    const [collapsedMeals, setCollapsedMeals] = useState<Set<string>>(new Set());
 
     // TanStack Query hooks - replace all manual data fetching
     const { data: trip, isLoading: isTripLoading, error: tripError } = useTrip(tripId);
@@ -57,9 +58,29 @@ export default function TripAdminPage() {
         }
     }, [trip]);
 
+    // Initialize all meals as collapsed when meal slots load
+    useEffect(() => {
+        if (mealSlots.length > 0) {
+            const allMealIds = new Set(mealSlots.map(slot => slot.id));
+            setCollapsedMeals(allMealIds);
+        }
+    }, [mealSlots]);
+
     // Trip editing functions
     const startEditingTrip = () => {
         setIsEditingTrip(true);
+    };
+
+    const toggleMealCollapse = (mealId: string) => {
+        setCollapsedMeals(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(mealId)) {
+                newSet.delete(mealId);
+            } else {
+                newSet.add(mealId);
+            }
+            return newSet;
+        });
     };
 
     const cancelEditingTrip = () => {
@@ -304,13 +325,23 @@ export default function TripAdminPage() {
                         </div>
                     ) : (
                         <div className="space-y-6">
-                            {mealSlots.map((slot) => (
+                            {mealSlots.map((slot) => {
+                                const isCollapsed = collapsedMeals.has(slot.id);
+                                return (
                                 <div key={slot.id} className="border border-slate-200 rounded-lg p-4">
                                     <div className="flex items-center justify-between mb-4">
-                                        <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                                        <button
+                                            onClick={() => toggleMealCollapse(slot.id)}
+                                            className="flex items-center gap-2 text-lg font-semibold text-slate-800 hover:text-purple-600 transition-colors"
+                                        >
                                             <span className="text-2xl">{getMealTypeIcon(slot.mealType)}</span>
                                             {slot.mealType} - {formatHumanDate(slot.date, locale)}
-                                        </h3>
+                                            {isCollapsed ? (
+                                                <ChevronDownIcon className="w-5 h-5 ml-2" />
+                                            ) : (
+                                                <ChevronUpIcon className="w-5 h-5 ml-2" />
+                                            )}
+                                        </button>
                                         <button
                                             onClick={() => removeMeal(slot.id, slot.mealType, slot.date)}
                                             className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors"
@@ -321,6 +352,8 @@ export default function TripAdminPage() {
                                     </div>
 
                                     {/* Current Assignments */}
+                                    {!isCollapsed && (
+                                    <>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                         <div>
                                             <h4 className="text-sm font-medium text-slate-600 mb-2 flex items-center gap-1">
@@ -417,8 +450,10 @@ export default function TripAdminPage() {
                                             <p className="text-sm text-slate-500 italic">All participants are already assigned to this meal</p>
                                         )}
                                     </div>
+                                    </>
+                                    )}
                                 </div>
-                            ))}
+                            )})}
                         </div>
                     )}
                 </div>
