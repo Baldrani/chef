@@ -19,6 +19,7 @@ type Meal = {
     tripId: string;
     date: string;
     mealType: MealType;
+    startTime?: string | null;
     assignments?: Assignment[];
     recipes?: { recipe: Recipe }[];
 };
@@ -33,6 +34,7 @@ export default function MealPage() {
     const [loading, setLoading] = useState(true);
     const [groceries, setGroceries] = useState<{ name: string; quantity?: string; category?: string }[]>([]);
     const [grocerySummary, setGrocerySummary] = useState<GrocerySummaryData | null>(null);
+    const [isUpdatingTime, setIsUpdatingTime] = useState(false);
 
     useEffect(() => {
         let cancelled = false;
@@ -84,6 +86,27 @@ export default function MealPage() {
     const cooks = useMemo(() => (meal?.assignments ?? []).filter(a => a.role === "COOK"), [meal]);
     const helpers = useMemo(() => (meal?.assignments ?? []).filter(a => a.role === "HELPER"), [meal]);
 
+    async function updateMealTime(newTime: string | null) {
+        if (!meal) return;
+        setIsUpdatingTime(true);
+        try {
+            const response = await fetch(`/api/meals/${meal.id}/time`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ startTime: newTime })
+            });
+            
+            if (response.ok) {
+                const updatedMeal = await response.json();
+                setMeal(updatedMeal);
+            }
+        } catch (error) {
+            console.error('Failed to update meal time:', error);
+        } finally {
+            setIsUpdatingTime(false);
+        }
+    }
+
     if (loading) {
         return (
             <div className="p-4">
@@ -124,6 +147,48 @@ export default function MealPage() {
                         <div>
                             <h1 className="text-3xl font-bold text-slate-800">{meal.mealType}</h1>
                             <div className="text-lg text-slate-600">{formatHumanDate(meal.date, locale)}</div>
+                        </div>
+                    </div>
+
+                    {/* Meal Time Picker */}
+                    <div className="bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl p-4 border border-slate-200/50">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center">
+                                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div className="font-semibold text-slate-800">Meal Time</div>
+                                    <div className="text-sm text-slate-600">
+                                        {meal.startTime || "Using default time"}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="time"
+                                    value={meal.startTime || ""}
+                                    onChange={(e) => updateMealTime(e.target.value || null)}
+                                    disabled={isUpdatingTime}
+                                    className="input text-sm"
+                                    title="Set custom meal time"
+                                />
+                                {meal.startTime && (
+                                    <button
+                                        onClick={() => updateMealTime(null)}
+                                        disabled={isUpdatingTime}
+                                        className="btn btn-secondary text-xs py-2 px-3"
+                                        title="Reset to default time"
+                                    >
+                                        Reset
+                                    </button>
+                                )}
+                                {isUpdatingTime && (
+                                    <div className="text-xs text-slate-500">Updating...</div>
+                                )}
+                            </div>
                         </div>
                     </div>
 

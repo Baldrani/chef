@@ -72,8 +72,6 @@ export default function AdminPage() {
         return null;
     }
 
-    console.log({trips});
-
     async function createTrip() {
         if (!name || !startDate || !endDate) return;
         setLoading(true);

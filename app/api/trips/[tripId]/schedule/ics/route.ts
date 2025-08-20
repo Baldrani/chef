@@ -17,11 +17,28 @@ function addHours(date: Date, hours: number) {
     return new Date(date.getTime() + hours * 3600 * 1000);
 }
 
-const MEAL_TIME_UTC: Record<string, number> = {
+const DEFAULT_MEAL_TIME_UTC: Record<string, number> = {
     BREAKFAST: 8, // 08:00Z
     LUNCH: 12, // 12:00Z
     DINNER: 19, // 19:00Z
 };
+
+function parseTimeToUTCHour(timeString: string | null): number | null {
+    if (!timeString) return null;
+    const [hours, minutes] = timeString.split(':').map(Number);
+    if (isNaN(hours) || isNaN(minutes)) return null;
+    return hours + (minutes / 60);
+}
+
+function getDefaultTimeForMeal(trip: { defaultBreakfastTime?: string | null; defaultLunchTime?: string | null; defaultDinnerTime?: string | null }, mealType: string): number {
+    const timeString = mealType === 'BREAKFAST' ? trip.defaultBreakfastTime
+                     : mealType === 'LUNCH' ? trip.defaultLunchTime
+                     : mealType === 'DINNER' ? trip.defaultDinnerTime
+                     : null;
+    
+    const parsed = parseTimeToUTCHour(timeString);
+    return parsed ?? DEFAULT_MEAL_TIME_UTC[mealType] ?? 12;
+}
 
 export async function GET(req: NextRequest) {
     const url = new URL(req.url);
@@ -53,12 +70,19 @@ export async function GET(req: NextRequest) {
     const dtstamp = formatDateICS(now);
 
     for (const s of slots) {
-        const cooks = s.assignments.map(a => a.participant.name).join(", ");
+        const cooks = s.assignments.filter(a => a.role === "COOK").map(a => a.participant.name).join(", ");
+        const helpers = s.assignments.filter(a => a.role === "HELPER").map(a => a.participant.name).join(", ");
         const recipeTitles = s.recipes.map(r => r.recipe.title).join(", ");
 
         const start = new Date(s.date);
-        // Set time component based on meal type (UTC hour)
-        start.setUTCHours(MEAL_TIME_UTC[s.mealType] ?? 12, 0, 0, 0);
+        // Use custom meal time if set, otherwise use trip defaults, fall back to global defaults
+        const customTime = parseTimeToUTCHour(s.startTime);
+        const defaultTime = getDefaultTimeForMeal(trip, s.mealType);
+        const mealHour = customTime ?? defaultTime;
+        
+        const hours = Math.floor(mealHour);
+        const minutes = Math.round((mealHour - hours) * 60);
+        start.setUTCHours(hours, minutes, 0, 0);
         const end = addHours(start, 1.5);
 
         const uid = `${s.id}@chef`;
@@ -69,8 +93,32 @@ export async function GET(req: NextRequest) {
         lines.push(`DTSTART:${formatDateICS(start)}`);
         lines.push(`DTEND:${formatDateICS(end)}`);
         lines.push(`SUMMARY:${s.mealType} – ${trip.name}`);
-        const desc = [`Cooks: ${cooks || "TBD"}`, recipeTitles ? `Recipes: ${recipeTitles}` : null].filter(Boolean).join("\\n");
-        lines.push(`DESCRIPTION:${desc}`);
+        
+        // Enhanced description with cooks, helpers, and recipes
+        const descParts = [
+            cooks ? `Cooks: ${cooks}` : "Cooks: TBD",
+            helpers ? `Helpers: ${helpers}` : null,
+            recipeTitles ? `Recipes: ${recipeTitles}` : "Recipes: TBD"
+        ].filter(Boolean);
+        lines.push(`DESCRIPTION:${descParts.join("\\n")}`);
+
+        // Add participants with emails as attendees
+        const participantsWithEmails = s.assignments
+            .map(a => a.participant)
+            .filter(p => p.email && p.email.trim())
+            .filter((p, index, arr) => arr.findIndex(x => x.email === p.email) === index); // Remove duplicates
+
+        participantsWithEmails.forEach(participant => {
+            lines.push(`ATTENDEE;CN=${participant.name};ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=FALSE:MAILTO:${participant.email}`);
+        });
+
+        // Add 1-hour reminder alarm
+        lines.push("BEGIN:VALARM");
+        lines.push("TRIGGER:-PT1H");
+        lines.push("DESCRIPTION:Meal preparation reminder");
+        lines.push("ACTION:DISPLAY");
+        lines.push("END:VALARM");
+
         lines.push("END:VEVENT");
     }
 

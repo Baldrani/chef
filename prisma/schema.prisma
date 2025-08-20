@@ -21,18 +21,22 @@ enum AssignmentRole {
 }
 
 model Trip {
-  id           String        @id @default(cuid())
-  name         String
-  startDate    DateTime
-  endDate      DateTime
-  createdBy    String?       // User who created the trip
-  creator      User?         @relation(fields: [createdBy], references: [id], onDelete: SetNull)
-  mealSlots    MealSlot[]
-  participants Participant[]
-  recipes      Recipe[]
-  invites      Invite[]
-  groceryLists GroceryList[]
-  createdAt    DateTime      @default(now())
+  id                String        @id @default(cuid())
+  name              String
+  startDate         DateTime
+  endDate           DateTime
+  createdBy         String?       // User who created the trip
+  creator           User?         @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  // Default meal times in HH:MM format
+  defaultBreakfastTime String?    @default("08:00")
+  defaultLunchTime     String?    @default("12:00") 
+  defaultDinnerTime    String?    @default("19:00")
+  mealSlots         MealSlot[]
+  participants      Participant[]
+  recipes           Recipe[]
+  invites           Invite[]
+  groceryLists      GroceryList[]
+  createdAt         DateTime      @default(now())
 }
 
 model MealSlot {
@@ -41,6 +45,7 @@ model MealSlot {
   trip        Trip          @relation(fields: [tripId], references: [id], onDelete: Cascade)
   date        DateTime
   mealType    MealType
+  startTime   String?       // Custom start time in HH:MM format (e.g., "08:00", "19:30")
   assignments Assignment[]
   recipes     RecipeAssignment[]
 

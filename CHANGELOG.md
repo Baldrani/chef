@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ✨ Enhancements
 
+#### Enhanced ICS Calendar Export
+- **NEW**: Participant emails now included as event attendees in ICS exports
+- **NEW**: Automatic 1-hour reminder alarms added to all calendar events
+- **NEW**: Custom meal timing system with per-meal and trip-wide default time settings
+- **NEW**: Trip admin page for configuring default breakfast (8:00), lunch (12:00), and dinner (19:00) times
+- **NEW**: Individual meal time picker on meal detail pages with reset functionality
+- **Enhanced Event Details**: Improved descriptions with separate cook/helper roles and recipe information
+- **Smart Time Hierarchy**: Custom meal time → Trip defaults → System defaults (8AM/12PM/7PM)
+- **Database Schema**: Added `startTime` to MealSlot and default time fields to Trip model
+- **Professional Calendar Integration**: Better compatibility with Google Calendar, Apple Calendar, and Outlook
+
 #### Modern Homepage Redesign
 - **NEW**: Complete homepage makeover with modern, engaging design
 - **Enhanced Hero Section**: Large gradient headlines, animated blob backgrounds, and trust indicators
