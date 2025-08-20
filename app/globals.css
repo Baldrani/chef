@@ -46,30 +46,48 @@ body {
 
 /* UI primitives */
 .btn {
-    @apply inline-flex items-center justify-center text-sm font-medium transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-md cursor-pointer;
+    @apply relative inline-flex items-center justify-center gap-2 font-medium text-sm rounded-lg transition-all duration-200 
+           focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed 
+           disabled:transform-none cursor-pointer;
     border-radius: var(--border-radius-lg);
+    min-height: 2.75rem;
+    padding: 0.5rem 1rem;
 }
-.btn:disabled {
-    @apply cursor-not-allowed opacity-50 transform-none hover:scale-100;
+
+.btn:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lg);
 }
+
+.btn:active {
+    transform: translateY(0);
+}
+
 .btn-primary {
     background: var(--gradient-primary);
-    @apply text-white px-6 py-3 shadow-lg hover:shadow-xl cursor-pointer;
-    border: 1px solid transparent;
+    @apply text-white border border-transparent shadow-md hover:shadow-lg focus:ring-purple-500;
 }
+
 .btn-secondary {
-    @apply border-2 border-slate-200 bg-white/80 backdrop-blur-sm hover:bg-white hover:border-slate-300 text-slate-700 px-5 py-2.5 shadow-md hover:shadow-lg cursor-pointer;
-    border-radius: var(--border-radius-lg);
+    @apply bg-white/90 border-2 border-slate-200 text-slate-700 shadow-sm hover:bg-white hover:border-slate-300 hover:shadow-md focus:ring-slate-400 backdrop-blur-sm;
 }
+
 .btn-success {
     background: var(--gradient-success);
-    @apply text-white px-6 py-3 shadow-lg hover:shadow-xl cursor-pointer;
-    border: 1px solid transparent;
+    @apply text-white border border-transparent shadow-md hover:shadow-lg focus:ring-cyan-500;
 }
+
 .btn-warm {
     background: var(--gradient-warm);
-    @apply text-white px-6 py-3 shadow-lg hover:shadow-xl cursor-pointer;
-    border: 1px solid transparent;
+    @apply text-white border border-transparent shadow-md hover:shadow-lg focus:ring-pink-500;
+}
+
+.btn-danger {
+    @apply bg-red-600 hover:bg-red-700 text-white border border-transparent shadow-md hover:shadow-lg focus:ring-red-500;
+}
+
+.btn-ghost {
+    @apply bg-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-800 border border-transparent focus:ring-slate-400;
 }
 .input {
     @apply border-2 border-slate-200 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-3 text-slate-700 placeholder-slate-400 transition-all duration-200 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none shadow-sm hover:shadow-md cursor-text;
