@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🔥 Major Features
 
+#### User Account Integration & Trip Association
+- **BREAKING**: Anonymous participant creation is now disabled - all users must authenticate
+- **Trip Association Flow**: Authenticated users can associate their accounts with existing participants via shared links
+- **Smart Participant Selection**: `/associate/[token]` route shows available unassociated participants for account linking
+- **Modal Participant Creation**: Clean modal interface for authenticated users to create new participants when none are available
+- **Authentication-Required Workflow**: All shared trip links now redirect through authentication flow
+- **Database Constraints**: Added unique constraint ensuring one participant per user per trip (`@@unique([tripId, userId])`)
+- **Admin Panel Renamed**: "Admin" section renamed to "Trips" throughout the application for clarity
+
+#### Participant-User Association Management  
+- **Disassociation API**: New `/api/participants/[participantId]/disassociate` endpoint for removing user associations
+- **Admin Disassociation Interface**: Trip admin panel includes participant management section with visual association status
+- **Permission-Based Access**: Only trip creators or associated users can disassociate participants
+- **Visual Association Status**: Color-coded indicators showing which participants are linked to user accounts
+- **User Details Display**: Shows associated user names and emails in participant management
+- **One-Click Disassociation**: Red X button with confirmation dialog for easy user unlinking
+
 #### Participant Profile Management
 - **Complete Profile Editing**: Participants can now update their information including name, email, and dietary restrictions
 - **Cooking Preference Editor**: Interactive slider to set cooking preferences from "Really dislikes" (-2) to "Loves cooking" (+2)
@@ -48,6 +65,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🛠️ Technical Improvements
 
+#### Authentication & Association API
+- **GET /api/invites/[token]/participants**: New endpoint to retrieve unassociated participants for a specific invitation
+- **POST /api/invites/[token]/associate**: Secure endpoint for associating authenticated users with existing participants  
+- **POST /api/participants/[participantId]/disassociate**: Admin endpoint for removing user-participant associations
+- **Enhanced Participants API**: Added user relationship data to participant queries for association status
+- **Session-Based Security**: All association operations require valid NextAuth sessions
+- **Transaction Safety**: User-participant associations use database transactions for consistency
+
+#### Route Structure & Localization
+- **Localized Association Route**: `/[locale]/associate/[token]` properly integrated with i18n routing system
+- **Middleware Updates**: Added `/associate` path to public routes for authentication handling
+- **Route Generation**: All association routes properly generated in Next.js build system
+- **Navigation Integration**: Trip navigation updated from `/admin` to `/trips` across all components
+
 #### Participant Management API Enhancement
 - **PUT /api/participants/[id]**: New endpoint for updating participant profiles
 - **Comprehensive Updates**: Support for all participant fields including availability dates
@@ -56,6 +87,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Type Safety**: Full TypeScript support for all participant operations
 
 #### Database Schema Updates
+- **User-Participant Association Constraint**: Added `@@unique([tripId, userId])` to prevent multiple participants per user per trip
+- **Enhanced Participant Queries**: Include user relationship data for association status display
+- **Email Field Support**: Optional email field in participant creation API for new participant modal
+- **Migration Required**: `add-unique-user-per-trip-constraint` migration needed for database constraint
 - **Added Participant.email**: Optional email field for ICS export and future user linking
 - **Added Participant.dietaryRestrictions**: Optional field for allergies and dietary requirements
 - **Migration Applied**: `20250819200341_add_participant_email_dietary_restrictions`
@@ -96,6 +131,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🐛 Bug Fixes
 
+#### Authentication & Route Issues  
+- **Fixed 404 errors**: Moved `/associate/[token]` route to proper localized folder structure `/[locale]/associate/[token]`
+- **Fixed anonymous access**: Blocked anonymous participant creation by redirecting all `/join/[token]` requests to authentication flow
+- **Fixed route conflicts**: Resolved middleware routing conflicts with new association paths
+- **Fixed TypeScript errors**: Resolved null/undefined user association checks in admin interface
+- **Fixed missing dependencies**: Added proper React hook dependencies for participant loading functions
+
 #### Database Schema Issues
 - **CRITICAL**: Fixed missing Participant.email field causing "Unknown argument 'email'" error
 - **CRITICAL**: Fixed missing Participant.dietaryRestrictions field in database schema
@@ -127,6 +169,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Resolved timezone issues in temporal spacing calculations
 
 ### 🎯 User Experience Improvements
+
+#### Streamlined Authentication Flow
+- **Unified Entry Point**: All shared trip links now go through consistent authentication-first flow
+- **Smart Participant Selection**: Visual participant cards with cooking preferences and user association status
+- **Fallback Options**: "Create new participant instead" option when no existing participants match
+- **Context-Aware Navigation**: Proper sign-in redirects maintain original invitation context
+- **Modal Interface**: Clean, focused modal for new participant creation with availability calendar
+- **Visual Feedback**: Loading states and success/error messaging throughout association process
+
+#### Enhanced Admin Experience  
+- **Participant Management Dashboard**: Dedicated section showing all participants with association status
+- **Visual Association Status**: Color-coded indicators (green dot for associated, gray for unassociated)
+- **User Information Display**: Shows linked user names and email addresses for associated participants
+- **Quick Disassociation**: One-click user unlinking with confirmation dialogs
+- **Permission-Based Actions**: Disassociation buttons only appear for authorized users (trip creator or associated user)
+- **Consistent Naming**: "Admin" renamed to "Trips" throughout navigation for clarity
 
 #### Smart Navigation & Tab Persistence  
 - **Tab-Aware Back Links**: Back navigation from participant pages now preserves the previously viewed tab
@@ -190,6 +248,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## Migration Guide
+
+### Upgrading to Authentication-Required Participant Management
+
+**BREAKING CHANGE**: Anonymous participant creation has been disabled. All users must now authenticate before joining trips.
+
+#### Required Database Migration
+```bash
+npx prisma migrate dev --name add-unique-user-per-trip-constraint
+```
+
+#### User Workflow Changes
+1. **Shared Links**: All `/join/[token]` links now redirect to `/associate/[token]` requiring authentication
+2. **Participant Creation**: Users must sign in before creating participants (Google OAuth required)
+3. **Account Linking**: Existing unassociated participants can be claimed by authenticated users
+4. **Admin Management**: Trip creators can now see and manage user-participant associations
+
+#### API Changes
+- **New Endpoints**: `/api/invites/[token]/participants`, `/api/invites/[token]/associate`, `/api/participants/[id]/disassociate`
+- **Enhanced Responses**: Participant queries now include user relationship data
+- **Session Requirements**: All association operations require authenticated sessions
+
+#### Navigation Updates
+- **Admin → Trips**: All references to "Admin" panel renamed to "Trips"
+- **New Routes**: `/[locale]/associate/[token]` for authenticated participant selection
 
 ### Upgrading to v2.0 Scheduling Algorithm
 
