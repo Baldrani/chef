@@ -13,21 +13,21 @@ export default function Home() {
         <div className="min-h-screen flex flex-col">
             <main className="flex-1">
                 <section className="relative overflow-hidden">
-                    <div className="max-w-6xl mx-auto px-6 py-20 md:py-28 text-center space-y-6">
+                    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20 md:py-28 text-center space-y-6">
                         <h1 className="text-4xl md:text-6xl font-bold tracking-tight">{t("headline")}</h1>
                         <p className="text-lg text-slate-600 max-w-2xl mx-auto">{t("sub")}</p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                            <Link className="btn btn-primary px-5 py-3" href="/trips">
+                            <Link className="btn btn-primary px-5 py-3 w-full sm:w-auto" href="/trips">
                                 {t("createTrip")}
                             </Link>
-                            <div className="flex items-stretch gap-2">
+                            <div className="flex flex-col sm:flex-row items-stretch gap-2 w-full sm:w-auto">
                                 <input
-                                    className="input w-64 placeholder:text-slate-400"
+                                    className="input w-full sm:w-64 placeholder:text-slate-400"
                                     placeholder={t("joinPlaceholder")}
                                     value={token}
                                     onChange={e => setToken(e.target.value)}
                                 />
-                                <button className="btn btn-secondary" onClick={() => token && router.push(`/join/${token}`)}>
+                                <button className="btn btn-secondary w-full sm:w-auto" onClick={() => token && router.push(`/join/${token}`)}>
                                     {t("join")}
                                 </button>
                             </div>
@@ -35,8 +35,8 @@ export default function Home() {
                     </div>
                 </section>
 
-                <section className="px-6 py-12">
-                    <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-6">
+                <section className="px-4 sm:px-6 py-12">
+                    <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
                         <Feature title={t("f1.title")} desc={t("f1.desc")} />
                         <Feature title={t("f2.title")} desc={t("f2.desc")} />
                         <Feature title={t("f3.title")} desc={t("f3.desc")} />

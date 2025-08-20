@@ -113,10 +113,10 @@ export default function GrocerySummary({ summary, groceries, showShoppingList = 
                     </div>
 
                     {/* Tab Navigation */}
-                    <div className="flex gap-1 p-1 bg-slate-100 rounded-lg mb-4">
+                    <div className="flex flex-wrap sm:flex-nowrap gap-1 p-1 bg-slate-100 rounded-lg mb-4">
                         <button
                             onClick={() => setActiveTab('all')}
-                            className={`px-3 py-2 text-sm font-medium rounded-md transition-all ${
+                            className={`flex-1 sm:flex-none px-3 py-2 text-xs sm:text-sm font-medium rounded-md transition-all ${
                                 activeTab === 'all'
                                     ? 'bg-white text-slate-900 shadow-sm'
                                     : 'text-slate-600 hover:text-slate-900'
@@ -126,7 +126,7 @@ export default function GrocerySummary({ summary, groceries, showShoppingList = 
                         </button>
                         <button
                             onClick={() => setActiveTab('by-meal')}
-                            className={`px-3 py-2 text-sm font-medium rounded-md transition-all ${
+                            className={`flex-1 sm:flex-none px-3 py-2 text-xs sm:text-sm font-medium rounded-md transition-all ${
                                 activeTab === 'by-meal'
                                     ? 'bg-white text-slate-900 shadow-sm'
                                     : 'text-slate-600 hover:text-slate-900'
@@ -136,7 +136,7 @@ export default function GrocerySummary({ summary, groceries, showShoppingList = 
                         </button>
                         <button
                             onClick={() => setActiveTab('by-category')}
-                            className={`px-3 py-2 text-sm font-medium rounded-md transition-all ${
+                            className={`flex-1 sm:flex-none px-3 py-2 text-xs sm:text-sm font-medium rounded-md transition-all ${
                                 activeTab === 'by-category'
                                     ? 'bg-white text-slate-900 shadow-sm'
                                     : 'text-slate-600 hover:text-slate-900'
@@ -151,13 +151,13 @@ export default function GrocerySummary({ summary, groceries, showShoppingList = 
                         {activeTab === 'all' && (
                             <ul className="space-y-2">
                                 {groceries.map((item, idx) => (
-                                    <li key={idx} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg">
+                                    <li key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between p-2 hover:bg-slate-50 rounded-lg gap-2">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-4 h-4 border border-slate-300 rounded"></div>
+                                            <div className="w-4 h-4 border border-slate-300 rounded flex-shrink-0"></div>
                                             <span className="text-slate-700">{item.name}</span>
                                         </div>
-                                        <div className="text-sm text-slate-500">
-                                            {item.quantity && <span className="mr-2">{item.quantity}</span>}
+                                        <div className="text-sm text-slate-500 flex items-center gap-2 sm:ml-auto">
+                                            {item.quantity && <span>{item.quantity}</span>}
                                             {item.category && <span className="bg-slate-100 px-2 py-1 rounded text-xs">{item.category}</span>}
                                         </div>
                                     </li>

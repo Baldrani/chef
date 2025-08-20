@@ -115,6 +115,8 @@ select.input {
 
 .animate-blob {
     animation: blob 7s infinite;
+    width: 100%;
+    position: fixed;
 }
 
 .animation-delay-2000 {

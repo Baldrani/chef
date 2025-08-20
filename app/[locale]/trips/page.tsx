@@ -114,7 +114,7 @@ export default function AdminPage() {
     }
 
     return (
-        <div className="p-6 max-w-7xl mx-auto space-y-8">
+        <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6 sm:space-y-8">
             <div className="text-center space-y-4">
                 <h1 className="text-5xl font-bold animate-gradient h-16">
                     {t("title")}
@@ -124,10 +124,10 @@ export default function AdminPage() {
 
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-white/50 shadow-xl space-y-6">
                 <h2 className="text-2xl font-bold text-slate-800">{t("create")}</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <input className="input" placeholder={t("name")} value={name} onChange={e => setName(e.target.value)} />
-                    <input className="input" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} aria-label={t("start")} />
-                    <input className="input" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} aria-label={t("end")} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <input className="input w-full" placeholder={t("name")} value={name} onChange={e => setName(e.target.value)} />
+                    <input className="input w-full" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} aria-label={t("start")} />
+                    <input className="input w-full" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} aria-label={t("end")} />
                 </div>
                 <button className="btn btn-primary disabled:opacity-50" disabled={loading || !name || !startDate || !endDate} onClick={createTrip}>
                     {loading ? (
@@ -153,22 +153,24 @@ export default function AdminPage() {
             ) : (
                 <div className="space-y-4">
                     <h2 className="text-2xl font-bold text-slate-800">{t("yourTrips")}</h2>
-                    <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                         {Array.isArray(trips) && trips.map(trip => (
                             <li key={trip.id} className="card card-interactive group" onClick={() => router.push(`/trips/${trip.id}`)}>
                                 <div className="space-y-4">
                                     <div>
-                                        <div className="text-xl font-bold text-slate-800 group-hover:text-purple-600 transition-colors">
+                                        <div className="text-lg sm:text-xl font-bold text-slate-800 group-hover:text-purple-600 transition-colors">
                                             {trip.name}
                                         </div>
-                                        <div className="text-sm text-slate-500 mt-1 flex items-center gap-2">
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <div className="text-xs sm:text-sm text-slate-500 mt-1 flex items-center gap-2">
+                                            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                             </svg>
-                                            {formatHumanDate(trip.startDate, locale)} → {formatHumanDate(trip.endDate, locale)}
+                                            <span className="truncate">
+                                                {formatHumanDate(trip.startDate, locale)} → {formatHumanDate(trip.endDate, locale)}
+                                            </span>
                                         </div>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-col sm:flex-row gap-2">
                                         <button 
                                             className="btn btn-primary flex-1 group-hover:scale-105 transition-transform"
                                         >
@@ -180,7 +182,7 @@ export default function AdminPage() {
                                             </div>
                                         </button>
                                         <button 
-                                            className="btn btn-secondary hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors px-3"
+                                            className="btn btn-secondary hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors px-3 sm:flex-shrink-0"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 deleteTrip(trip.id, trip.name);

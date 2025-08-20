@@ -24,6 +24,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html lang="en">
+            <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
+            </head>
             <body className={`${poppins.variable} ${pacifico.variable} antialiased bg-gradient-to-br from-blue-50 via-white to-purple-50 text-slate-900 relative min-h-screen`}>{children}</body>
         </html>
     );
