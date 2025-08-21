@@ -25,6 +25,8 @@ model Trip {
   name              String
   startDate         DateTime
   endDate           DateTime
+  location          String?       // Trip location for ICS export
+  timezone          String?       // IANA timezone (e.g., "Europe/Paris", "America/New_York")
   createdBy         String?       // User who created the trip
   creator           User?         @relation(fields: [createdBy], references: [id], onDelete: SetNull)
   // Default meal times in HH:MM format

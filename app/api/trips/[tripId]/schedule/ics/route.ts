@@ -129,7 +129,38 @@ export async function GET(req: NextRequest) {
         status: 200,
         headers: {
             "Content-Type": "text/calendar; charset=utf-8",
-            "Content-Disposition": `attachment; filename=trip-${tripId}-schedule.ics`,
+            "Content-Disposition": `attachment; filename=${encodeURIComponent(trip.name)}-schedule.ics`,
+            "Cache-Control": "public, max-age=300", // 5 minutes cache
+            "ETag": etag,
+            "Last-Modified": (trip.updatedAt || trip.createdAt).toUTCString(),
+        },
+    });
+}
+
+// HEAD method for cache validation
+export async function HEAD(req: NextRequest) {
+    const url = new URL(req.url);
+    const match = url.pathname.match(/\/api\/trips\/([^/]+)\/schedule\/ics/);
+    const tripId = match?.[1];
+    if (!tripId) return new NextResponse(null, { status: 400 });
+
+    const trip = await prisma.trip.findUnique({ 
+        where: { id: tripId },
+        select: { createdAt: true, updatedAt: true }
+    });
+    
+    if (!trip) return new NextResponse(null, { status: 404 });
+    
+    const slotsCount = await prisma.mealSlot.count({ where: { tripId } });
+    const etag = generateETag(trip.updatedAt || trip.createdAt, slotsCount);
+    
+    return new NextResponse(null, {
+        status: 200,
+        headers: {
+            "Content-Type": "text/calendar; charset=utf-8",
+            "Cache-Control": "public, max-age=300",
+            "ETag": etag,
+            "Last-Modified": (trip.updatedAt || trip.createdAt).toUTCString(),
         },
     });
 }

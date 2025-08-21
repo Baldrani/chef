@@ -33,16 +33,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Backward Compatibility**: Non-localized routes automatically redirect to localized equivalents
 - **Performance Optimization**: Reduced bundle size through component splitting and better code organization
 
-#### Enhanced ICS Calendar Export
-- **NEW**: Participant emails now included as event attendees in ICS exports
-- **NEW**: Automatic 1-hour reminder alarms added to all calendar events
-- **NEW**: Custom meal timing system with per-meal and trip-wide default time settings
-- **NEW**: Trip admin page for configuring default breakfast (8:00), lunch (12:00), and dinner (19:00) times
-- **NEW**: Individual meal time picker on meal detail pages with reset functionality
-- **Enhanced Event Details**: Improved descriptions with separate cook/helper roles and recipe information
-- **Smart Time Hierarchy**: Custom meal time → Trip defaults → System defaults (8AM/12PM/7PM)
-- **Database Schema**: Added `startTime` to MealSlot and default time fields to Trip model
-- **Professional Calendar Integration**: Better compatibility with Google Calendar, Apple Calendar, and Outlook
+#### Revolutionary ICS Calendar Export v2.1
+- **🌍 Intelligent Timezone Support**: Automatic timezone detection from trip location with proper VTIMEZONE blocks for accurate local time display
+- **📍 Enhanced Event Details**: Location information, meal categories, priority levels, and comprehensive dietary restriction integration
+- **⏰ Smart Duration Management**: Meal-specific durations (Breakfast: 1h, Lunch: 1.5h, Dinner: 2h) for realistic scheduling
+- **🌐 Full Internationalization**: Calendar events automatically translated based on user's browser language (English/French)
+- **⚡ Performance & Caching**: HTTP caching with ETags, HEAD method support, and 5-minute cache control for optimal performance
+- **👥 Advanced Attendee Management**: Participant roles (Cook/Helper) included in attendee properties with proper RSVP handling
+- **🔔 Multi-Level Reminders**: 24-hour planning reminder + 1-hour preparation reminder for better meal coordination
+- **📊 Calendar Preview Modal**: Interactive preview interface with event details, participant info, and copy calendar URL functionality
+- **🎨 Enhanced UI**: New calendar preview button, improved export experience with proper filename encoding
+- **🗄️ Database Schema**: Added trip location and timezone fields for comprehensive geographical support
+- **📦 Dependencies**: Added date-fns-tz for robust timezone handling across all calendar applications
+- **🔧 Technical Improvements**: Better VTIMEZONE generation, improved date formatting, and enhanced error handling
 
 #### Modern Homepage Redesign
 - **NEW**: Complete homepage makeover with modern, engaging design

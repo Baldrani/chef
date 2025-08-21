@@ -13,10 +13,22 @@ import {
     Settings,
     Zap,
     Download,
+    Eye,
 } from "lucide-react";
+import CalendarPreviewModal from "@/app/components/CalendarPreviewModal";
 import { toast } from "sonner";
 
-type Trip = { id: string; name: string; startDate: string; endDate: string };
+type Trip = { 
+    id: string; 
+    name: string; 
+    startDate: string; 
+    endDate: string;
+    location?: string;
+    timezone?: string;
+    defaultBreakfastTime?: string;
+    defaultLunchTime?: string;
+    defaultDinnerTime?: string;
+};
 
 interface TripHeaderProps {
     trip: Trip | null;
@@ -33,6 +45,7 @@ export function TripHeader({ trip, invite, tripId, onScheduleRefresh, onRecipeRe
     const [avoidConsecutive, setAvoidConsecutive] = useState<boolean>(true);
     const [prioritizeEqualParticipation, setPriorizeEqualParticipation] = useState<boolean>(false);
     const [isGeneratingSchedule, setIsGeneratingSchedule] = useState(false);
+    const [showCalendarPreview, setShowCalendarPreview] = useState(false);
 
     async function genSchedule() {
         setIsGeneratingSchedule(true);
@@ -125,15 +138,33 @@ export function TripHeader({ trip, invite, tripId, onScheduleRefresh, onRecipeRe
                                 </div>
                             )}
                         </button>
-                        <a className="btn btn-secondary" href={`/api/trips/${tripId}/schedule/ics`} target="_blank" rel="noreferrer">
+                        <button 
+                            className="btn btn-secondary" 
+                            onClick={() => setShowCalendarPreview(true)}
+                        >
+                            <div className="flex items-center gap-2">
+                                <Eye className="w-5 h-5" />
+                                Preview Calendar
+                            </div>
+                        </button>
+                        <a className="btn btn-outline" href={`/api/trips/${tripId}/schedule/ics`} target="_blank" rel="noreferrer">
                             <div className="flex items-center gap-2">
                                 <Download className="w-5 h-5" />
-                                Export ICS
+                                Download ICS
                             </div>
                         </a>
                     </div>
                 </div>
             </div>
+            
+            {trip && (
+                <CalendarPreviewModal
+                    isOpen={showCalendarPreview}
+                    onClose={() => setShowCalendarPreview(false)}
+                    trip={trip}
+                    tripId={tripId}
+                />
+            )}
         </div>
     );
 }
