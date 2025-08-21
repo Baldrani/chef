@@ -16,7 +16,7 @@ import {
   useRemoveParticipantFromMeal,
   useDeleteMeal
 } from "@/lib/queries";
-import { ArrowLeftIcon, CheckIcon, XIcon, EditIcon, UsersIcon, UtensilsIcon, Trash2Icon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
+import { ArrowLeftIcon, CheckIcon, XIcon, EditIcon, UsersIcon, UtensilsIcon, Trash2Icon, ChevronDownIcon, ChevronUpIcon, ClockIcon, SaveIcon } from "lucide-react";
 import { toast } from "sonner";
 
 type MealType = "BREAKFAST" | "LUNCH" | "DINNER";
@@ -34,6 +34,12 @@ export default function TripAdminPage() {
         endDate: ""
     });
     const [collapsedMeals, setCollapsedMeals] = useState<Set<string>>(new Set());
+    const [mealTimesForm, setMealTimesForm] = useState({
+        defaultBreakfastTime: "08:00",
+        defaultLunchTime: "12:00",
+        defaultDinnerTime: "19:00"
+    });
+    const [savingMealTimes, setSavingMealTimes] = useState(false);
 
     // TanStack Query hooks - replace all manual data fetching
     const { data: trip, isLoading: isTripLoading, error: tripError } = useTrip(tripId);
@@ -54,6 +60,11 @@ export default function TripAdminPage() {
                 name: trip.name,
                 startDate: formatISODate(new Date(trip.startDate)),
                 endDate: formatISODate(new Date(trip.endDate))
+            });
+            setMealTimesForm({
+                defaultBreakfastTime: trip.defaultBreakfastTime || "08:00",
+                defaultLunchTime: trip.defaultLunchTime || "12:00",
+                defaultDinnerTime: trip.defaultDinnerTime || "19:00"
             });
         }
     }, [trip]);
@@ -144,6 +155,31 @@ export default function TripAdminPage() {
         }
 
         disassociateParticipantMutation.mutate(participantId);
+    };
+
+    const saveMealTimes = async () => {
+        if (!trip) return;
+        setSavingMealTimes(true);
+        try {
+            const response = await fetch(`/api/trips/${trip.id}/meal-times`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(mealTimesForm)
+            });
+
+            if (response.ok) {
+                const updatedTrip = await response.json();
+                // Update the trip data (you might want to refetch or update local state)
+                toast.success("Meal times updated successfully");
+            } else {
+                toast.error("Failed to update meal times");
+            }
+        } catch (error) {
+            console.error("Failed to save meal times:", error);
+            toast.error("Failed to update meal times");
+        } finally {
+            setSavingMealTimes(false);
+        }
     };
 
     const getMealTypeIcon = (mealType: MealType) => {
@@ -308,6 +344,78 @@ export default function TripAdminPage() {
                             </div>
                         </div>
                     )}
+                </div>
+
+                {/* Default Meal Times Configuration */}
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-white/50 shadow-xl space-y-6">
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200/50">
+                        <h2 className="text-xl font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                            <ClockIcon className="w-5 h-5" />
+                            Default Meal Times
+                        </h2>
+                        <p className="text-sm text-slate-600 mb-6">
+                            Set default times for each meal type. These will be used for all new meals and ICS calendar exports.
+                            Individual meals can override these times.
+                        </p>
+
+                        <div className="grid gap-4 sm:grid-cols-3">
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-slate-700">
+                                    🌅 Breakfast Time
+                                </label>
+                                <input
+                                    type="time"
+                                    value={mealTimesForm.defaultBreakfastTime}
+                                    onChange={(e) => setMealTimesForm(prev => ({ ...prev, defaultBreakfastTime: e.target.value }))}
+                                    className="input w-full"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-slate-700">
+                                    ☀️ Lunch Time
+                                </label>
+                                <input
+                                    type="time"
+                                    value={mealTimesForm.defaultLunchTime}
+                                    onChange={(e) => setMealTimesForm(prev => ({ ...prev, defaultLunchTime: e.target.value }))}
+                                    className="input w-full"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-slate-700">
+                                    🌙 Dinner Time
+                                </label>
+                                <input
+                                    type="time"
+                                    value={mealTimesForm.defaultDinnerTime}
+                                    onChange={(e) => setMealTimesForm(prev => ({ ...prev, defaultDinnerTime: e.target.value }))}
+                                    className="input w-full"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end mt-6">
+                            <button
+                                onClick={saveMealTimes}
+                                disabled={savingMealTimes}
+                                className="btn btn-primary"
+                            >
+                                {savingMealTimes ? (
+                                    <div className="flex items-center gap-2">
+                                        <Loader size="sm" />
+                                        Saving...
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2">
+                                        <SaveIcon className="w-4 h-4" />
+                                        Save Settings
+                                    </div>
+                                )}
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Meal Assignments Section */}
@@ -529,6 +637,25 @@ export default function TripAdminPage() {
                             ))}
                         </div>
                     )}
+                </div>
+
+                {/* ICS Calendar Export */}
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-white/50 shadow-xl space-y-6">
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200/50">
+                        <h3 className="text-lg font-semibold text-slate-800 mb-2">ICS Calendar Export</h3>
+                        <p className="text-sm text-slate-600 mb-4">
+                            Export your trip schedule to calendar apps like Google Calendar, Apple Calendar, or Outlook.
+                            The export includes participant emails and 1-hour reminders.
+                        </p>
+                        <a 
+                            href={`/api/trips/${tripId}/schedule/ics`}
+                            className="btn btn-secondary"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            Download ICS Calendar
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
