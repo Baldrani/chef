@@ -105,7 +105,7 @@ export default function Home() {
                                 Everything you need for <span className="text-purple-600">group cooking</span>
                             </h2>
                             <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                                From meal planning to grocery shopping, we've got you covered with smart automation and fair scheduling.
+                                From meal planning to grocery shopping, we&apos;ve got you covered with smart automation and fair scheduling.
                             </p>
                         </div>
 
