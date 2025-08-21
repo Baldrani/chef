@@ -1,0 +1,35 @@
+# Robots.txt for Chef - Vacation Meal Planning App
+# https://chef-app.vercel.app/robots.txt
+
+User-agent: *
+Allow: /
+
+# Allow important pages
+Allow: /en/
+Allow: /fr/
+Allow: /$
+Allow: /en$
+Allow: /fr$
+
+# Block API routes and admin areas
+Disallow: /api/
+Disallow: /*/admin/
+Disallow: /*/associate/
+Disallow: /_next/
+
+# Allow static assets
+Allow: /favicon.ico
+Allow: /logo.png
+Allow: /og-image.png
+Allow: /twitter-image.png
+Allow: /*.svg
+Allow: /*.png
+Allow: /*.jpg
+Allow: /*.jpeg
+Allow: /*.webp
+
+# Sitemap location
+Sitemap: https://chef-app.vercel.app/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1

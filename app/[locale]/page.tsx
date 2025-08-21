@@ -4,14 +4,89 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
 import Button from "@/app/components/Button";
+import Script from "next/script";
 
 export default function Home() {
     const t = useTranslations("Home");
     const router = useRouter();
     const [token, setToken] = useState("");
 
+    const structuredData = {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "Organization",
+                "@id": `${process.env.NEXT_PUBLIC_BASE_URL || 'https://chef-app.vercel.app'}/#organization`,
+                "name": "Chef",
+                "url": process.env.NEXT_PUBLIC_BASE_URL || 'https://chef-app.vercel.app',
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": `${process.env.NEXT_PUBLIC_BASE_URL || 'https://chef-app.vercel.app'}/logo.png`,
+                    "width": 512,
+                    "height": 512
+                },
+                "description": "Free, open-source meal planning for vacation rentals and group trips",
+                "founder": {
+                    "@type": "Person",
+                    "name": "Maël Mayon",
+                    "url": "https://github.com/Baldrani"
+                },
+                "foundingDate": "2024",
+                "contactPoint": {
+                    "@type": "ContactPoint",
+                    "contactType": "technical support",
+                    "url": "https://github.com/Baldrani/chef/issues"
+                }
+            },
+            {
+                "@type": "WebSite",
+                "@id": `${process.env.NEXT_PUBLIC_BASE_URL || 'https://chef-app.vercel.app'}/#website`,
+                "url": process.env.NEXT_PUBLIC_BASE_URL || 'https://chef-app.vercel.app',
+                "name": "Chef - Vacation Meal Planning",
+                "description": "Plan vacation meals, fairly assign cooks and helpers, add recipes, and get AI-generated daily grocery lists.",
+                "publisher": {
+                    "@id": `${process.env.NEXT_PUBLIC_BASE_URL || 'https://chef-app.vercel.app'}/#organization`
+                },
+                "inLanguage": ["en-US", "fr-FR"]
+            },
+            {
+                "@type": "SoftwareApplication",
+                "name": "Chef",
+                "applicationCategory": "LifestyleApplication",
+                "operatingSystem": "Web Browser",
+                "description": "Stress-free group cooking on vacation. Plan meals, assign cooks fairly, and get AI-generated grocery lists.",
+                "url": process.env.NEXT_PUBLIC_BASE_URL || 'https://chef-app.vercel.app',
+                "author": {
+                    "@id": `${process.env.NEXT_PUBLIC_BASE_URL || 'https://chef-app.vercel.app'}/#organization`
+                },
+                "offers": {
+                    "@type": "Offer",
+                    "price": "0",
+                    "priceCurrency": "USD",
+                    "availability": "https://schema.org/InStock"
+                },
+                "featureList": [
+                    "Smart meal scheduling",
+                    "Fair cook assignment algorithm", 
+                    "Recipe management",
+                    "AI-generated grocery lists",
+                    "Multi-language support",
+                    "Vacation rental integration",
+                    "Calendar export (ICS)"
+                ]
+            }
+        ]
+    };
+
     return (
         <div className="min-h-screen flex flex-col">
+            <Script
+                id="structured-data"
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify(structuredData)
+                }}
+            />
             <main className="flex-1">
                 {/* Hero Section */}
                 <section className="relative overflow-hidden py-20 lg:py-28">

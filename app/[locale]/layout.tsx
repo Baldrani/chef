@@ -7,10 +7,42 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { AllProviders } from "../components/Providers";
 
-export const metadata: Metadata = {
-    title: "Chef",
-    description: "Stress-free group cooking on vacation",
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+    const { locale } = await params;
+    
+    const translations = {
+        en: {
+            title: 'Chef - Stress-free Group Cooking on Vacation | Plan Meals, Assign Cooks, Generate Grocery Lists',
+            description: 'Plan vacation meals, fairly assign cooks and helpers, add recipes, and get AI-generated daily grocery lists. Free, open-source meal planning for vacation rentals and group trips.',
+        },
+        fr: {
+            title: 'Chef - Cuisine de Groupe Sans Stress en Vacances | Planifier les Repas, Assigner les Cuisiniers',
+            description: 'Planifiez les repas de vacances, assignez équitablement les cuisiniers et assistants, ajoutez des recettes et obtenez des listes de courses générées par IA. Gratuit et open-source.',
+        }
+    };
+
+    const t = translations[locale as keyof typeof translations] || translations.en;
+
+    return {
+        title: t.title,
+        description: t.description,
+        alternates: {
+            canonical: `/${locale}`,
+            languages: {
+                'en-US': '/en',
+                'fr-FR': '/fr',
+                'x-default': '/en',
+            },
+        },
+        openGraph: {
+            title: t.title,
+            description: t.description,
+            url: `/${locale}`,
+            locale: locale === 'fr' ? 'fr_FR' : 'en_US',
+            alternateLocale: locale === 'fr' ? ['en_US'] : ['fr_FR'],
+        },
+    };
+}
 
 export default async function LocaleLayout({ children, params }: { children: React.ReactNode; params: Promise<{ locale: string }> }) {
     const { locale } = await params;
