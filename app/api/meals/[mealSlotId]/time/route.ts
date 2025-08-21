@@ -8,10 +8,10 @@ const updateTimeSchema = z.object({
 
 export async function PATCH(
     req: NextRequest,
-    { params }: { params: { mealSlotId: string } }
+    { params }: { params: Promise<{ mealSlotId: string }> }
 ) {
     try {
-        const { mealSlotId } = params;
+        const { mealSlotId } = await params;
         const body = await req.json();
         const { startTime } = updateTimeSchema.parse(body);
 

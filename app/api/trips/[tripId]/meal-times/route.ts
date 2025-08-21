@@ -12,10 +12,10 @@ const updateMealTimesSchema = z.object({
 
 export async function PATCH(
     req: NextRequest,
-    { params }: { params: { tripId: string } }
+    { params }: { params: Promise<{ tripId: string }> }
 ) {
     try {
-        const { tripId } = params;
+        const { tripId } = await params;
         const body = await req.json();
         const updateData = updateMealTimesSchema.parse(body);
 

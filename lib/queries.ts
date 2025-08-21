@@ -19,6 +19,9 @@ type Trip = {
   startDate: string
   endDate: string
   createdBy?: string
+  defaultBreakfastTime?: string
+  defaultLunchTime?: string
+  defaultDinnerTime?: string
 }
 
 type Participant = {

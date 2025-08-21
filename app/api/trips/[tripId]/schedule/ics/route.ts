@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
+function generateETag(timestamp: Date, slotsCount: number): string {
+    return `"${timestamp.getTime()}-${slotsCount}"`;
+}
+
 function formatDateICS(date: Date) {
     // YYYYMMDDTHHMMSSZ (UTC)
     const pad = (n: number) => String(n).padStart(2, "0");
@@ -23,7 +27,7 @@ const DEFAULT_MEAL_TIME_UTC: Record<string, number> = {
     DINNER: 19, // 19:00Z
 };
 
-function parseTimeToUTCHour(timeString: string | null): number | null {
+function parseTimeToUTCHour(timeString: string | null | undefined): number | null {
     if (!timeString) return null;
     const [hours, minutes] = timeString.split(':').map(Number);
     if (isNaN(hours) || isNaN(minutes)) return null;
@@ -124,6 +128,8 @@ export async function GET(req: NextRequest) {
 
     lines.push("END:VCALENDAR");
     const ics = lines.join("\r\n");
+    
+    const etag = generateETag(trip.createdAt, slots.length);
 
     return new NextResponse(ics, {
         status: 200,
@@ -132,7 +138,7 @@ export async function GET(req: NextRequest) {
             "Content-Disposition": `attachment; filename=${encodeURIComponent(trip.name)}-schedule.ics`,
             "Cache-Control": "public, max-age=300", // 5 minutes cache
             "ETag": etag,
-            "Last-Modified": (trip.updatedAt || trip.createdAt).toUTCString(),
+            "Last-Modified": trip.createdAt.toUTCString(),
         },
     });
 }
@@ -146,13 +152,13 @@ export async function HEAD(req: NextRequest) {
 
     const trip = await prisma.trip.findUnique({ 
         where: { id: tripId },
-        select: { createdAt: true, updatedAt: true }
+        select: { createdAt: true }
     });
     
     if (!trip) return new NextResponse(null, { status: 404 });
     
     const slotsCount = await prisma.mealSlot.count({ where: { tripId } });
-    const etag = generateETag(trip.updatedAt || trip.createdAt, slotsCount);
+    const etag = generateETag(trip.createdAt, slotsCount);
     
     return new NextResponse(null, {
         status: 200,
@@ -160,7 +166,7 @@ export async function HEAD(req: NextRequest) {
             "Content-Type": "text/calendar; charset=utf-8",
             "Cache-Control": "public, max-age=300",
             "ETag": etag,
-            "Last-Modified": (trip.updatedAt || trip.createdAt).toUTCString(),
+            "Last-Modified": trip.createdAt.toUTCString(),
         },
     });
 }

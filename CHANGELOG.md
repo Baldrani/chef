@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🐛 Bug Fixes
+
+#### Build System Compatibility
+- **Next.js 15 Route Handler Migration**: Updated API route handlers to use new Promise-based params pattern for dynamic segments
+- **TypeScript Type Definitions**: Added missing meal time fields (`defaultBreakfastTime`, `defaultLunchTime`, `defaultDinnerTime`) to Trip type in query definitions
+- **ICS Calendar Export Fixes**: Resolved multiple issues in calendar export functionality including missing ETag generation, undefined variable references, and timestamp handling
+- **Build Process Stabilization**: Fixed all TypeScript compilation errors preventing successful production builds
+
 ### ✨ Enhancements
 
 #### Comprehensive SEO Optimization & Landing Page Enhancement
