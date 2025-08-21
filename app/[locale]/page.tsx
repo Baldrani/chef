@@ -278,7 +278,7 @@ export default function Home() {
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
                         <div className="space-y-4">
                             <div className="flex items-center gap-2">
-                                <span className="text-2xl bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent font-bold" style={{ fontFamily: "var(--font-pacifico)" }}>
+                                <span className="text-2xl bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent font-bold px-0.5" style={{ fontFamily: "var(--font-pacifico)" }}>
                                     Chef
                                 </span>
                                 <span className="text-xs uppercase tracking-widest text-slate-500">Summer</span>

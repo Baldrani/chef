@@ -19,10 +19,9 @@ export default function Header() {
             <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
                 <div className="flex items-center justify-between">
                     <Link href="/" className="flex items-baseline gap-2 sm:gap-3 group transition-transform hover:scale-105">
-                        <span className="text-2xl sm:text-3xl bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent font-bold" style={{ fontFamily: "var(--font-pacifico)" }}>
+                        <span className="text-2xl sm:text-3xl bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent font-bold p-1" style={{ fontFamily: "var(--font-pacifico)" }}>
                             {t("brand")}
                         </span>
-                        <span className="hidden sm:block text-xs uppercase tracking-widest text-slate-500 font-medium group-hover:text-purple-600 transition-colors">{t("tag")}</span>
                     </Link>
 
                     {/* Desktop Navigation */}
