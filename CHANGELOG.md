@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🐛 Bug Fixes
 
+#### Trip Joining Functionality Restored
+- **Join Page Implementation**: Restored missing trip joining functionality that was accidentally replaced with placeholder during code cleanup refactor
+- **Unauthenticated User Flow**: Re-implemented `/join/[token]` page allowing unauthenticated users to create participants and join trips directly
+- **API Integration**: Connected join page to existing `/api/invites/[token]/accept` endpoint with proper form validation and error handling
+
 #### Build System Compatibility
 - **Next.js 15 Route Handler Migration**: Updated API route handlers to use new Promise-based params pattern for dynamic segments
 - **TypeScript Type Definitions**: Added missing meal time fields (`defaultBreakfastTime`, `defaultLunchTime`, `defaultDinnerTime`) to Trip type in query definitions
