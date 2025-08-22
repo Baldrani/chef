@@ -10,9 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 🐛 Bug Fixes
 
 #### Trip Joining Functionality Restored
-- **Join Page Implementation**: Restored missing trip joining functionality that was accidentally replaced with placeholder during code cleanup refactor
-- **Unauthenticated User Flow**: Re-implemented `/join/[token]` page allowing unauthenticated users to create participants and join trips directly
-- **API Integration**: Connected join page to existing `/api/invites/[token]/accept` endpoint with proper form validation and error handling
+- **Authentication-First Flow**: Restored proper join page functionality requiring Google sign-in before participant selection
+- **Participant Association**: Re-implemented `/join/[token]` page showing existing trip participants for authenticated users to select from
+- **New Participant Creation**: Added modal for creating new participants when user doesn't match any existing participants
+- **Proper Flow Integration**: Connected join page to existing `useUnassociatedParticipants`, `useAssociateParticipant`, and `useCreateParticipant` hooks
 
 #### Build System Compatibility
 - **Next.js 15 Route Handler Migration**: Updated API route handlers to use new Promise-based params pattern for dynamic segments
